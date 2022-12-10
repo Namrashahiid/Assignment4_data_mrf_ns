@@ -2,27 +2,26 @@
 title: "Assignment4"
 format: html
 editor: visual
+author: Marit Rygg Fredheim & Namra Shahid
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document.
-To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code.
-You can embed code like this:
+## Assignment 4
 
 ```{r}
-1 + 1
+library(dplyr)
 ```
-
-You can add options to executable code like this
 
 ```{r}
-#| echo: false
-2 * 2
+load(file = "data/pm2.Rdata")
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+```{r}
+aar <- as.factor(2008:2017)
+```
+
+```{r}
+pm2 %>%
+mutate(
+  .before = pm2
+)
+```
