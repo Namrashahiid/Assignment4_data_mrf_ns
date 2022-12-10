@@ -6,6 +6,7 @@
 *.docx
 *.md
 *.tex
+data/
 
 # History files
 .Rhistory
