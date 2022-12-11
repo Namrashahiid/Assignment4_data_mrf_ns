@@ -25,3 +25,19 @@ mutate(
   .before = pm2
 )
 ```
+
+```{r}
+factor(aar) 
+date()
+```
+
+```{r}
+knr <- as.vector(2008:2017)
+tibble(pm2)
+select(pm2)
+distinct(2008:2017)
+```
+
+```{r}
+tid <- as.vector(2008:2017)
+```
