@@ -10,6 +10,7 @@ author: Marit Rygg Fredheim & Namra Shahid
 ```{r}
 library(dplyr)
 library(tidyverse)
+library(PxWebApiData)
 ```
 
 ```{r}
@@ -32,10 +33,19 @@ factor(aar)
 ```
 
 ```{r}
+knr <- pm2 %>%
+  select(knr) %>%
+  distinct(knr) %>%
+  pull()
+```
+
+```{r}
 pm2 %>% 
   select(knr) %>%
   distinct(knr) %>%
   pull()
+
+
 ```
 
 ```{r}
@@ -43,9 +53,51 @@ typeof(knr)
 ```
 
 ```{r}
-as.character()
+pm2 <- pm2 %>% 
+  mutate(tid = aar) 
 ```
 
 ```{r}
-tid <- as.vector(2008:2017)
+pm2
+```
+
+### Sysselsatte
+
+```{r}
+ApiData(
+  "https://data.ssb.no/api/v0/no/table/13122/",
+  returnMetaFrames = TRUE
+)
+```
+
+```{r}
+sysselsatte <- ApiData(
+  urlToData = "13122"
+    )
+
+names(sysselsatte)[1] <- "desc"
+names(sysselsatte)[2] <- "ss"
+```
+
+```{r}
+# ...
+ss <- sysselsatte$ss %>% 
+  # ...
+  mutate(
+    knavn = sysselsatte$desc$region,
+  ) %>% 
+  # Endrer variabelnavn
+  rename(
+    aar = Tid,
+    knr = Region,
+    ss = value 
+  )  %>%
+  select(aar, knavn, knr, ss) %>% 
+  as_tibble()
+```
+
+```{r}
+ss %>%
+head(n = 5) %>%
+print()
 ```
