@@ -9,6 +9,7 @@ author: Marit Rygg Fredheim & Namra Shahid
 
 ```{r}
 library(dplyr)
+library(tidyverse)
 ```
 
 ```{r}
@@ -28,14 +29,21 @@ mutate(
 
 ```{r}
 factor(aar) 
-date()
 ```
 
 ```{r}
-knr <- as.vector(2008:2017)
-tibble(pm2)
-select(pm2)
-distinct(2008:2017)
+pm2 %>% 
+  select(knr) %>%
+  distinct(knr) %>%
+  pull()
+```
+
+```{r}
+typeof(knr)
+```
+
+```{r}
+as.character()
 ```
 
 ```{r}
