@@ -106,3 +106,19 @@ ss %>%
 head(n = 5) %>%
 print()
 ```
+
+Modell:
+
+```{r}
+mod1 <- paste("pm2 ~ aar_f", "ya_p",
+"inc_h", "uni_p",
+"nytt_bareal_pp", "oms", "andel_ss", sep = " + ")
+print(strwrap(mod1), quote = FALSE)
+```
+
+14
+
+```{r}
+lm <- mod1 %>%
+  summary(lm1)
+```
