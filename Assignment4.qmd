@@ -71,8 +71,13 @@ ApiData(
 ```
 
 ```{r}
+Tid <- as.character(2008:2017)
+```
+
+```{r}
 sysselsatte <- ApiData(
-  urlToData = "13122"
+  urlToData = "13122",
+  Region = knr
     )
 
 names(sysselsatte)[1] <- "desc"
