@@ -123,6 +123,10 @@ Alder = "20-66 år"
 ```
 
 ```{r}
+tid <- as.character(2008:2017)
+```
+
+```{r}
 befolkning <- ApiData(
   urlToData = "07459",
   Region = knr,
@@ -139,14 +143,23 @@ pm2 <- befolkning$pop2066 %>%
   # ...
   mutate(
     knavn = befolkning$pop2066$region,
+    aar =  befolkning$dataset$Tid,
+    knr = befolkning$dataset$Region
   ) %>% 
   # Endrer variabelnavn
   rename(
-    aar = Tid,
-    knr = Region,
-    bf = value 
-  )  %>%
-  select(tid, knavn, knr, Alder)
+    befolkning = value)
+```
+
+```{r}
+mutate(andel_ss = "20-66 år")
+```
+
+```{r}
+pm2 %>%
+select(aar, knr, andel_ss) %>%
+head(n = 5) %>%
+print()
 ```
 
 Modell:
