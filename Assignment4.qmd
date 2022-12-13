@@ -44,8 +44,6 @@ pm2 %>%
   select(knr) %>%
   distinct(knr) %>%
   pull()
-
-
 ```
 
 ```{r}
@@ -71,13 +69,14 @@ ApiData(
 ```
 
 ```{r}
-Tid <- as.character(2008:2017)
+tid <- as.character(2008:2017)
 ```
 
 ```{r}
 sysselsatte <- ApiData(
   urlToData = "13122",
-  Region = knr
+  Region = knr,
+  Tid = tid
     )
 
 names(sysselsatte)[1] <- "desc"
@@ -105,6 +104,49 @@ ss <- sysselsatte$ss %>%
 ss %>%
 head(n = 5) %>%
 print()
+```
+
+```{r}
+pm2 %>%
+  left_join(ss, by = c("aar", "knr"))
+```
+
+```{r}
+ApiData(
+  "https://data.ssb.no/api/v0/no/table/07459/",
+  returnMetaFrames = TRUE
+)
+```
+
+```{r}
+Alder = "20-66 år"
+```
+
+```{r}
+befolkning <- ApiData(
+  urlToData = "07459",
+  Region = knr,
+  Tid = tid,
+  Alder = list("agg:Funksjonell2a", c("F309")),
+  Kjonn = FALSE
+    )
+
+  names(befolkning)[1] <- "pop2066"
+```
+
+```{r}
+pm2 <- befolkning$pop2066 %>% 
+  # ...
+  mutate(
+    knavn = befolkning$pop2066$region,
+  ) %>% 
+  # Endrer variabelnavn
+  rename(
+    aar = Tid,
+    knr = Region,
+    bf = value 
+  )  %>%
+  select(tid, knavn, knr, Alder)
 ```
 
 Modell:
