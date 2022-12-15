@@ -8,8 +8,8 @@ author: Marit Rygg Fredheim & Namra Shahid
 ## Assignment 4
 
 ```{r}
-library(dplyr)
 library(tidyverse)
+library(lubridate)
 library(PxWebApiData)
 ```
 
@@ -18,18 +18,14 @@ load(file = "data/pm2.Rdata")
 ```
 
 ```{r}
-aar <- as.factor(2008:2017)
-```
-
-```{r}
 pm2 %>%
 mutate(
+  # aar <- as.factor(2008:2017) ok
+  # men neste er bedre
+  aar_d = ymd(paste(aar, "-01-01", sep = "")),
+  aar = parse_factor(aar),
   .before = pm2
 )
-```
-
-```{r}
-factor(aar) 
 ```
 
 ```{r}
@@ -40,21 +36,13 @@ knr <- pm2 %>%
 ```
 
 ```{r}
-pm2 %>% 
-  select(knr) %>%
-  distinct(knr) %>%
-  pull()
-
-
+# dette holder hvis du vil se knr. 
+knr |>
+  print(width = 78)
 ```
 
 ```{r}
 typeof(knr)
-```
-
-```{r}
-pm2 <- pm2 %>% 
-  mutate(tid = aar) 
 ```
 
 ```{r}
@@ -64,20 +52,34 @@ pm2
 ### Sysselsatte
 
 ```{r}
-ApiData(
+metadata_13122 <- ApiData(
   "https://data.ssb.no/api/v0/no/table/13122/",
   returnMetaFrames = TRUE
 )
 ```
 
 ```{r}
-Tid <- as.character(2008:2017)
+# Disse må vi angi for å hente data via API
+names(metadata_13122)
 ```
 
 ```{r}
+tid <- as.character(2008:2017)
+```
+
+```{r}
+# Bruker ssb sin web-app og sjekker api-kall nederst på siden
+# for å finne de argumentene som må settes. Ønsker sysselsatte
+# utfra bosted for årene 2008:2017, for kommunene i knr, alle næringer,
+# alle sektorer og ikke delt på kjønn
 sysselsatte <- ApiData(
   urlToData = "13122",
-  Region = knr
+  Region = knr,
+  Alder = "20-66",
+  NACE2007 = "00-99",
+  Sektor = "ALLE",
+  ContentsCode = "SysselEtterBoste",
+  Tid = tid
     )
 
 names(sysselsatte)[1] <- "desc"
@@ -85,7 +87,7 @@ names(sysselsatte)[2] <- "ss"
 ```
 
 ```{r}
-# ...
+# 
 ss <- sysselsatte$ss %>% 
   # ...
   mutate(
@@ -105,4 +107,50 @@ ss <- sysselsatte$ss %>%
 ss %>%
 head(n = 5) %>%
 print()
+```
+
+Gjør så tilsvarende for befolkning i alderen 20-66 år (tabell 07459).
+
+```{r}
+metadata_07459 <- ApiData(
+  "https://data.ssb.no/api/v0/no/table/07459/",
+  returnMetaFrames = TRUE
+)
+```
+
+```{r}
+names(metadata_07459)
+```
+
+Sjekker de ulike, Region og Tid vet vi hva skal være.
+
+```{r}
+# Kan prøve med Kjonn = FALSE og se om det gir total så
+# slipper vi å addere menn og kvinner
+metadata_07459$Kjonn
+```
+
+```{r}
+# Slitsomt å hente alle år fra 20 til 66 og så aggregere selv
+metadata_07459$Alder |>
+  pull(values) |>
+  print(width = 78)
+```
+
+```{r}
+metadata_07459$ContentsCode
+```
+
+Ser fra API-spørring SSBs web-side at vi kan få alderskategorien vi ønsker vha.
+"agg:Funksjonell2a,F309" som er gitt som hint i oppgaveteksten.
+
+Hent ned befolkningsdata fra 07459, merge med ss og regn ut (sysselsatte_20_66/befolkning_20_66)\*100
+
+```{r}
+
+```
+
+```{r}
+#| echo: false
+# siste
 ```
