@@ -11,6 +11,14 @@ author: Marit Rygg Fredheim & Namra Shahid
 library(dplyr)
 library(tidyverse)
 library(PxWebApiData)
+library(magrittr)
+
+library(lubridate)
+library(modelr)
+library(broom)
+library(lmtest)
+library(sandwich)
+library(viridis)
 ```
 
 ```{r}
@@ -107,7 +115,7 @@ print()
 ```
 
 ```{r}
-pm2 %>%
+pm2 %<>%
   left_join(ss, by = c("aar", "knr"))
 ```
 
@@ -139,7 +147,7 @@ befolkning <- ApiData(
 ```
 
 ```{r}
-pm2 <- befolkning$pop2066 %>% 
+bb <- befolkning$pop2066 %>% 
   # ...
   mutate(
     knavn = befolkning$pop2066$region,
@@ -148,11 +156,29 @@ pm2 <- befolkning$pop2066 %>%
   ) %>% 
   # Endrer variabelnavn
   rename(
-    befolkning = value)
+    befolkning = value) %>%
+  select(knavn, aar, knr, alder, befolkning)
 ```
 
 ```{r}
-mutate(andel_ss = "20-66 år")
+pm2 %<>%
+  left_join(bb, by = c("aar", "knr"))
+  
+```
+
+```{r}
+pm2 %<>%
+  select(knr, aar, pm2, ya_p, inc_h, uni_p, nytt_bareal_pp, oms, tid, ss, alder, befolkning, knavn)
+```
+
+```{r}
+#pm2 %>%
+#summarise(ss, by = knr)
+```
+
+```{r}
+pm2 %<>%
+mutate(andel_ss = ss / befolkning * 100)
 ```
 
 ```{r}
@@ -165,15 +191,34 @@ print()
 Modell:
 
 ```{r}
+pm2 <- pm2 %>%
+  mutate(
+    fnr = str_sub(knr, 1,2),
+    aar_f = str_sub(aar)
+  )
+```
+
+```{r}
+pm2 %>%
+  mutate(
+    fnr = parse_factor(fnr, levels = fnr),
+    aar_f = parse_factor(aar_f, levels = aar_f)
+  )
+```
+
+```{r}
 mod1 <- paste("pm2 ~ aar_f", "ya_p",
 "inc_h", "uni_p",
 "nytt_bareal_pp", "oms", "andel_ss", sep = " + ")
 print(strwrap(mod1), quote = FALSE)
 ```
 
+```{r}
+lm1 <- lm(mod1, data = pm2)
+```
+
 14
 
 ```{r}
-lm <- mod1 %>%
   summary(lm1)
 ```
