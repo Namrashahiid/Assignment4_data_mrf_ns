@@ -469,20 +469,21 @@ theme(legend.position = 'bottom')
 i\) Det vi kan se ut i fra fylkene i kommunene i Rogaland er at det er en del spredning.
 Vi kan se at Klepp får mye oppmerksomhet i første øyeblikk, siden selve fylket ligger på toppen av modellen og vi kan da si med andre ord at fylket Klepp blir ovevurdert.
 Det fylket som blir blir undervurdert er Sauda, som da i motsetning til Klepp ligger helt nederst nærmere bunnlinjen i modellen.
-\
-\
 
-\
-\
-Modell for hvert fylke:
+###   Modell for hvert fylke
 
 ```{r}
 pm2_f <- pm2 %>% 
 # velger først variablene. Tar med aar_d
-   select(fnr %in% c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "14", "15", "16", "17", "18", "19", "20")) %>% 
-  # grupperer mht. aar_d som er date object
-  group_by(aar_d) %>%
+  # next a trick to bring with us continent variable
+  # not needed for the grouping (no two countries with same name)
+  group_by(fnr) %>% 
   nest()
+
+   #select(fnr %in% c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "14", "15", "16", "17", "18", "19", "20")) %>% 
+  # grupperer mht. aar_d som er date object
+ # group_by(aar_d) %>%
+ # nest()
 ```
 
 ```{r}
@@ -490,10 +491,31 @@ pm2_f
 ```
 
 ```{r}
-pm2_f$data[[1]] %>%
- head(n = 5)
+#pm2_f$data[[1]] %>%
+ #head(n = 5)
 ```
 
 ```{r}
 dim(pm2_f)
+```
+
+31
+
+```{r}
+f_model <- function(mod, a_df) {
+  paste(mod, a_df)
+}
+```
+
+```{r}
+f_model <- function(a_df) {
+   lm(
+      formula = mod,
+      data = a_df,
+  )
+}
+```
+
+```{r}
+lm4 <- lm(mod, data = a_df)
 ```
