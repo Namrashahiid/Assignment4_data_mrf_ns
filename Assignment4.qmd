@@ -11,6 +11,14 @@ author: Marit Rygg Fredheim & Namra Shahid
 library(tidyverse)
 library(lubridate)
 library(PxWebApiData)
+library(magrittr)
+
+library(lubridate)
+library(modelr)
+library(broom)
+library(lmtest)
+library(sandwich)
+library(viridis)
 ```
 
 ```{r}
@@ -39,6 +47,10 @@ knr <- pm2 %>%
 # dette holder hvis du vil se knr. 
 knr |>
   print(width = 78)
+pm2 %>% 
+  select(knr) %>%
+  distinct(knr) %>%
+  pull()
 ```
 
 ```{r}
@@ -113,6 +125,13 @@ Gjør så tilsvarende for befolkning i alderen 20-66 år (tabell 07459).
 
 ```{r}
 metadata_07459 <- ApiData(
+```{r}
+pm2 %<>%
+  left_join(ss, by = c("aar", "knr"))
+```
+
+```{r}
+ApiData(
   "https://data.ssb.no/api/v0/no/table/07459/",
   returnMetaFrames = TRUE
 )
@@ -153,4 +172,98 @@ Hent ned befolkningsdata fra 07459, merge med ss og regn ut (sysselsatte_20_66/b
 ```{r}
 #| echo: false
 # siste
+Alder = "20-66 år"
+```
+
+```{r}
+tid <- as.character(2008:2017)
+```
+
+```{r}
+befolkning <- ApiData(
+  urlToData = "07459",
+  Region = knr,
+  Tid = tid,
+  Alder = list("agg:Funksjonell2a", c("F309")),
+  Kjonn = FALSE
+    )
+
+  names(befolkning)[1] <- "pop2066"
+```
+
+```{r}
+bb <- befolkning$pop2066 %>% 
+  # ...
+  mutate(
+    knavn = befolkning$pop2066$region,
+    aar =  befolkning$dataset$Tid,
+    knr = befolkning$dataset$Region
+  ) %>% 
+  # Endrer variabelnavn
+  rename(
+    befolkning = value) %>%
+  select(knavn, aar, knr, alder, befolkning)
+```
+
+```{r}
+pm2 %<>%
+  left_join(bb, by = c("aar", "knr"))
+  
+```
+
+```{r}
+pm2 %<>%
+  select(knr, aar, pm2, ya_p, inc_h, uni_p, nytt_bareal_pp, oms, tid, ss, alder, befolkning, knavn)
+```
+
+```{r}
+#pm2 %>%
+#summarise(ss, by = knr)
+```
+
+```{r}
+pm2 %<>%
+mutate(andel_ss = ss / befolkning * 100)
+```
+
+```{r}
+pm2 %>%
+select(aar, knr, andel_ss) %>%
+head(n = 5) %>%
+print()
+```
+
+Modell:
+
+```{r}
+pm2 <- pm2 %>%
+  mutate(
+    fnr = str_sub(knr, 1,2),
+    aar_f = str_sub(aar)
+  )
+```
+
+```{r}
+pm2 %>%
+  mutate(
+    fnr = parse_factor(fnr, levels = fnr),
+    aar_f = parse_factor(aar_f, levels = aar_f)
+  )
+```
+
+```{r}
+mod1 <- paste("pm2 ~ aar_f", "ya_p",
+"inc_h", "uni_p",
+"nytt_bareal_pp", "oms", "andel_ss", sep = " + ")
+print(strwrap(mod1), quote = FALSE)
+```
+
+```{r}
+lm1 <- lm(mod1, data = pm2)
+```
+
+14
+
+```{r}
+  summary(lm1)
 ```
