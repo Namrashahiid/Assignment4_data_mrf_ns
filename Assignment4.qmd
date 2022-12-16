@@ -19,6 +19,7 @@ library(broom)
 library(lmtest)
 library(sandwich)
 library(viridis)
+library(stringr)
 ```
 
 ```{r}
@@ -266,6 +267,126 @@ lm1 <- lm(mod1, data = pm2)
   summary(lm1)
 ```
 
-```{r}
+15\.
 
+Det vi kan lese ut av verdien på års-koeffisientene er en estimate verdi, noe som forteller/representerer tall som vi bruker for å kalkulere data.
+Dataene kan da vi bruke for å estimere en populasjonsparametre. 
+
+Den første Estimate valuen for aar_f2009 er -585.169105, noe som forteller oss at den er negativ og tyder på at det er en nedgang i antall sysselsatte året 2009. 
+
+Samme kan vi også si om aa_f2010.
+Der er Estimate -695.231013.
+Her blir konklusjonen det samme for aar_f2009. 
+
+Neste the std.error verdien forteller oss hvor spredt verdiene i vårt datasett er spredt.
+Std.error verdien for aar_f2009 er 275.589422, denne verdien er høy, noe som forteller oss i hvilken grad verdiene våre er spredt.
+Vi kan konkludere her med å si at ifølge vår Std.error verdi for aar_f2009 er verdiene våre en del spredt. 
+
+T-value, også kalt for the t critical value, forteller oss om resultatene våre er signifikante eller ikke.
+Det som er vanlig å gjøre er å sammenligne t-value med et signifikansnivå.
+Vi kan ta 5% (0.05) som i utgangspunkt for sammenligning.
+Vår t-value for aar_f2009 er -2.123, noe som forteller oss at den er negativ.
+Hvis vi bruker nå 0.05 for å sammenligne.
+T-test tyder på at det er en to-sidet test.
+5%/2= 2,5/100= 0.025.
+Hvis nå vår value er mindre enn t-valuen, blir resultatet av testen vår statistisk signifikant.
+Dette er tilfelle her, siden vår t-value er mindre enn 2,5% nivå. 
+
+16\.
+
+Fortegnet på estimate value på de forskjellige årene er negativ på de fleste.
+Vi kan se at det er en sammenheng her, siden de fleste Estimate verdiene har negative tall.
+Videre ser vi at ya_p har en positiv Estimate verdi på 767.961063, noe som tyder på at det er en positiv sammenheng også.
+Estimate verdiene begynner med å være negative, deretter blir for eksempel ya_p, inc_h, uni_p positiv, deretter blir nytt_bareal_pp verdien plutselig negativ.
+
+17
+
+```{r}
+pm2 <- pm2 %>%
+  add_residuals(lm1)
+```
+
+\
+18
+
+```{r}
+pm2 <- pm2 %>%
+  mutate(aar_d = make_date(aar))
+```
+
+\
+19
+
+```{r}
+pm2 <- pm2 %<>%
+  mutate(fylke = substr(knr, start = 1, stop = 2))
+```
+
+```{r}
+pm2_red <- pm2 %>%
+  filter(fylke %in% c("01", "02", "03", "11", "12"))
+```
+
+```{r}
+#| label: fig-gjennomsnittlig_residual
+#| fig-cap: Utviklingen i gjennomsnittlig residual fra modell 1 for utvalgte fylker
+pm2_red %>%
+  filter(fylke %in% c("01", "02", "03", "11", "12")) %>%
+  unnest(c(fylke)) %>%
+  group_by (fylke, aar_d) %>%
+  summarise(mean_fylke = mean(resid)) %>%
+  ggplot(aes(x=aar_d, y=mean_fylke, colour = fylke)) +
+  geom_line(lwd=1) +
+  theme(legend.position = "bottom")
+```
+
+20
+
+Aller først er det slik at denne plotten i Figur 1 viser oss utviklingen i gjennomsnittlig residual fra modell 1 for utvalgte fylker.
+På x-aksen ser vi årstallet og på y-aksen tall på residualene. 
+
+Det vi kan si her ut fra modellens treffsikkerhet er at den treffer noe bra.
+fnr forteller oss om fylkesnummer.
+Fnr: 01, 02, 11, 12 ligger på samme nivå i plottet, noe som tyder på at de har samme verdier.
+På andre siden skiller fnr: 03 seg, siden den ligger over alle fnr.
+Vi kan her konkludere med å si at fnr: 03 har hatt en positiv residual utvikling. 
+
+\
+\
+21
+
+#sjekker senere-----
+
+```{r}
+mod2 <- 'pm2 ~ fylke * aar_f + ya_p + inc_h + uni_p'
+```
+
+```{r}
+lm2 <- lm(mod2, data = pm2)
+```
+
+```{r}
+summary(lm2)
+```
+
+Dummy fylke og år
+
+22
+
+```{r}
+names(lm2)
+```
+
+```{r}
+mod3 <- mod2
+```
+
+```{r}
+mod3 <- factor(fylke)
+```
+
+23
+
+```{r}
+lm3 <- lm(mod3, data = pm2)
 ```
