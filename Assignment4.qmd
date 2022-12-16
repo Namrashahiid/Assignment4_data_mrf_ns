@@ -22,6 +22,8 @@ library(viridis)
 library(stringr)
 ```
 
+### Leser inn data
+
 ```{r}
 load(file = "data/pm2.Rdata")
 ```
@@ -232,7 +234,7 @@ head(n = 5) %>%
 print()
 ```
 
-Modell:
+#### Modell
 
 ```{r}
 pm2 <- pm2 %>%
@@ -358,7 +360,9 @@ Vi kan her konkludere med å si at fnr: 03 har hatt en positiv residual utviklin
 #sjekker senere-----
 
 ```{r}
-mod2 <- 'pm2 ~ fylke * aar_f + ya_p + inc_h + uni_p'
+mod2 <- paste("pm2 ~ aar_f", "ya_p",
+"inc_h", "uni_p",
+"nytt_bareal_pp", "oms", "andel_ss", sep = " + ")
 ```
 
 ```{r}
@@ -369,24 +373,55 @@ lm2 <- lm(mod2, data = pm2)
 summary(lm2)
 ```
 
-Dummy fylke og år
+### Dummy fylke og år
 
 22
-
-```{r}
-names(lm2)
-```
 
 ```{r}
 mod3 <- mod2
 ```
 
 ```{r}
-mod3 <- factor(fylke)
+mod3 <- paste("pm2 ~ aar_f", "ya_p",
+"inc_h", "uni_p",
+"nytt_bareal_pp", "oms", "andel_ss", "fylke", sep = " + ")
 ```
 
 23
 
 ```{r}
 lm3 <- lm(mod3, data = pm2)
+```
+
+24
+
+```{r}
+pm2 <- pm2 %>%
+  mutate(res_m3 = resid(lm3))
+```
+
+```{r}
+summary(lm3)
+```
+
+[Diskuter!!!!!]{.underline}
+
+25 diskuter!!!
+
+26 samme som 24?
+
+27
+
+```{r}
+#| label: fig-utvikling_residual
+#| fig-cap: Plot av utviklingen i residualene for de valgte fylkene
+pm2 %>% 
+  filter(fylke %in% c("01", "02", "03", "11", "12", "20")) %>%
+  ggplot(mapping = aes(x = aar_d, y = res_m3)) +
+  geom_point(aes(group = knavn), alpha = 0.4) +
+  scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+  geom_hline(yintercept = 0, colour = "black") +
+  theme(legend.position = 'bottom') +
+  geom_smooth(mapping = aes(x = aar_d, y = res_m3), se = FALSE) +
+    facet_wrap(~fylke) 
 ```
