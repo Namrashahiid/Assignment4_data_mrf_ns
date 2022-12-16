@@ -321,7 +321,10 @@ pm2 <- pm2 %>%
 
 ```{r}
 pm2 <- pm2 %<>%
-  mutate(fylke = substr(knr, start = 1, stop = 2))
+  mutate(
+    fylke = substr(knr, start = 1, stop = 2),
+    fnr = substr(knr, 1, 2)
+    )
 ```
 
 ```{r}
@@ -424,4 +427,73 @@ pm2 %>%
   theme(legend.position = 'bottom') +
   geom_smooth(mapping = aes(x = aar_d, y = res_m3), se = FALSE) +
     facet_wrap(~fylke) 
+```
+
+28
+
+i\) Det at linjen ligger over 0 for noen av fylkene, sier oss at linjen treffer de positive verdiene.
+Verdiene som ligger under streken er negativ.
+For eksempel, hvis vi tar plot 01 som i utgangspunkt, ser vi at linjen er konstant på 0, deretter øker den og går opp til de positive verdiene. 
+
+ii\) Vi kan si at det kan kanskje være grunn for å tro at plot 03 mangler noen viktige verdier.
+Det er på grunn av at vi ikke ser noen verdier der i det hele tatt som er spredt som i de andre plottene. 
+
+iii\)
+
+```{r}
+#| label: fig-utvikling_residual_Rogaland
+#| fig-cap: Utviklingen i residualene for kommuner i Rogaland fylke
+pm2 %>% filter(fylke %in% c("11")) %>%
+ggplot(mapping = aes(x = aar_d, y = res_m3)) +
+scale_color_viridis(discrete = TRUE, option = "D") +
+geom_line(aes(group = knavn, colour = knavn, size = knavn)) +
+scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+geom_hline(yintercept = 0) +
+theme(legend.position = 'bottom')
+```
+
+29
+
+```{r}
+pm2 %>% filter(knr %in% c("1119", "1120", "1127", 
+                          "1121", "1130", "1135", "1106", "1149")
+               ) %>%
+ggplot(mapping = aes(x = aar_d, y = res_m3)) +
+scale_color_viridis(discrete = TRUE, option = "A") +
+geom_line(aes(group = knavn, colour = knavn, size =knavn)) +
+scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+geom_hline(yintercept = 0) +
+theme(legend.position = 'bottom')
+```
+
+i\) Det vi kan se ut i fra fylkene i kommunene i Rogaland er at det er en del spredning.
+Vi kan se at Klepp får mye oppmerksomhet i første øyeblikk, siden selve fylket ligger på toppen av modellen og vi kan da si med andre ord at fylket Klepp blir ovevurdert.
+Det fylket som blir blir undervurdert er Sauda, som da i motsetning til Klepp ligger helt nederst nærmere bunnlinjen i modellen.
+\
+\
+
+\
+\
+Modell for hvert fylke:
+
+```{r}
+pm2_f <- pm2 %>% 
+# velger først variablene. Tar med aar_d
+   select(fnr %in% c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "14", "15", "16", "17", "18", "19", "20")) %>% 
+  # grupperer mht. aar_d som er date object
+  group_by(aar_d) %>%
+  nest()
+```
+
+```{r}
+pm2_f
+```
+
+```{r}
+pm2_f$data[[1]] %>%
+ head(n = 5)
+```
+
+```{r}
+dim(pm2_f)
 ```
