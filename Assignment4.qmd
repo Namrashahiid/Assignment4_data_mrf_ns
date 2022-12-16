@@ -109,9 +109,9 @@ ss <- sysselsatte$ss %>%
   rename(
     aar = Tid,
     knr = Region,
-    ss = value 
+    sysselsatte_20_66 = value 
   )  %>%
-  select(aar, knavn, knr, ss) %>% 
+  select(aar, knavn, knr, sysselsatte_20_66) %>% 
   as_tibble()
 ```
 
@@ -121,20 +121,18 @@ head(n = 5) %>%
 print()
 ```
 
-Gjør så tilsvarende for befolkning i alderen 20-66 år (tabell 07459).
-
-```{r}
-metadata_07459 <- ApiData(
 ```{r}
 pm2 %<>%
   left_join(ss, by = c("aar", "knr"))
 ```
 
+Gjør så tilsvarende for befolkning i alderen 20-66 år (tabell 07459).
+
 ```{r}
-ApiData(
+metadata_07459 <- ApiData(
   "https://data.ssb.no/api/v0/no/table/07459/",
   returnMetaFrames = TRUE
-)
+  )
 ```
 
 ```{r}
@@ -164,10 +162,6 @@ Ser fra API-spørring SSBs web-side at vi kan få alderskategorien vi ønsker vh
 "agg:Funksjonell2a,F309" som er gitt som hint i oppgaveteksten.
 
 Hent ned befolkningsdata fra 07459, merge med ss og regn ut (sysselsatte_20_66/befolkning_20_66)\*100
-
-```{r}
-
-```
 
 ```{r}
 #| echo: false
@@ -201,19 +195,23 @@ bb <- befolkning$pop2066 %>%
   ) %>% 
   # Endrer variabelnavn
   rename(
-    befolkning = value) %>%
-  select(knavn, aar, knr, alder, befolkning)
+    befolkning_20_66 = value) %>%
+  select(knavn, aar, knr, alder, befolkning_20_66)
 ```
 
 ```{r}
 pm2 %<>%
   left_join(bb, by = c("aar", "knr"))
-  
 ```
 
 ```{r}
 pm2 %<>%
-  select(knr, aar, pm2, ya_p, inc_h, uni_p, nytt_bareal_pp, oms, tid, ss, alder, befolkning, knavn)
+mutate(andel_ss = (sysselsatte_20_66/befolkning_20_66)*100)
+```
+
+```{r}
+#pm2 %<>%
+  #select(knr, aar, pm2, ya_p, inc_h, uni_p, nytt_bareal_pp, oms, tid, ss, alder, befolkning, knavn)
 ```
 
 ```{r}
@@ -223,7 +221,7 @@ pm2 %<>%
 
 ```{r}
 pm2 %<>%
-mutate(andel_ss = ss / befolkning * 100)
+mutate(andel_ss = (sysselsatte_20_66/befolkning_20_66)*100)
 ```
 
 ```{r}
@@ -238,7 +236,7 @@ Modell:
 ```{r}
 pm2 <- pm2 %>%
   mutate(
-    fnr = str_sub(knr, 1,2),
+    #fnr = str_sub(knr, 1,2),
     aar_f = str_sub(aar)
   )
 ```
@@ -246,7 +244,7 @@ pm2 <- pm2 %>%
 ```{r}
 pm2 %>%
   mutate(
-    fnr = parse_factor(fnr, levels = fnr),
+    #fnr = parse_factor(fnr, levels = fnr),
     aar_f = parse_factor(aar_f, levels = aar_f)
   )
 ```
@@ -266,4 +264,8 @@ lm1 <- lm(mod1, data = pm2)
 
 ```{r}
   summary(lm1)
+```
+
+```{r}
+
 ```
