@@ -509,7 +509,6 @@ f_model <- function(a_df) {
 ```
 
 ```{r}
-<<<<<<< HEAD
 #f_model <- function(a_df) {
   # same simple model for each country
   #lm(pm2 ~ fnr, data = a_df)
@@ -518,17 +517,6 @@ f_model <- function(a_df) {
 
 ```{r}
 pm2_f <- pm2_f %>%
- mutate(mod = map(.x = data, .f = f_model))
-=======
-f_model <- function(a_df) {
-  #same simple model for each country
-  lm(mod ~ a_df, data = a_df)
-}
-```
-
-```{r}
-f_model <- pm2_f %>%
   #remeber map(data, function), our data named data
-  mutate(model = map(a_df, .f = f_model)) 
->>>>>>> 3b6f7cf157d8628a108239fc6d2e162b09304da4
+  mutate(model = map(.x = data, .f = f_model)) 
 ```
