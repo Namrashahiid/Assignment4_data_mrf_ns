@@ -8,6 +8,7 @@
 *.tex
 data/
 .DS_Store
+*assignment4_files/
 
 # History files
 .Rhistory

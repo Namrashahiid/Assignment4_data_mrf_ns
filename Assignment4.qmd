@@ -479,43 +479,43 @@ pm2_f <- pm2 %>%
   # not needed for the grouping (no two countries with same name)
   group_by(fnr) %>% 
   nest()
-
-   #select(fnr %in% c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "14", "15", "16", "17", "18", "19", "20")) %>% 
-  # grupperer mht. aar_d som er date object
- # group_by(aar_d) %>%
- # nest()
-```
-
-```{r}
-pm2_f
-```
-
-```{r}
-#pm2_f$data[[1]] %>%
- #head(n = 5)
 ```
 
 ```{r}
 dim(pm2_f)
 ```
 
+```{r}
+pm2_f %>%
+head(n = 6) %>%
+print()
+```
+
 31
 
 ```{r}
-f_model <- function(mod, a_df) {
-  paste(mod, a_df)
-}
+#f_model <- function(mod, a_df) {
+  #paste(mod, a_df)
+#}
 ```
 
 ```{r}
 f_model <- function(a_df) {
    lm(
-      formula = mod,
+      formula = pm2 ~ fylke,
       data = a_df,
   )
 }
 ```
 
 ```{r}
-lm4 <- lm(mod, data = a_df)
+#f_model <- function(a_df) {
+  # same simple model for each country
+  #lm(pm2 ~ fnr, data = a_df)
+#}
+```
+
+```{r}
+pm2_f <- pm2_f %>%
+ mutate(mod = map(.x = data, .f = f_model))
 ```
