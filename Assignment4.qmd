@@ -470,7 +470,7 @@ i\) Det vi kan se ut i fra fylkene i kommunene i Rogaland er at det er en del sp
 Vi kan se at Klepp får mye oppmerksomhet i første øyeblikk, siden selve fylket ligger på toppen av modellen og vi kan da si med andre ord at fylket Klepp blir ovevurdert.
 Det fylket som blir blir undervurdert er Sauda, som da i motsetning til Klepp ligger helt nederst nærmere bunnlinjen i modellen.
 
-###   Modell for hvert fylke
+### Modell for hvert fylke
 
 ```{r}
 pm2_f <- pm2 %>% 
@@ -509,6 +509,7 @@ f_model <- function(a_df) {
 ```
 
 ```{r}
+<<<<<<< HEAD
 #f_model <- function(a_df) {
   # same simple model for each country
   #lm(pm2 ~ fnr, data = a_df)
@@ -518,4 +519,16 @@ f_model <- function(a_df) {
 ```{r}
 pm2_f <- pm2_f %>%
  mutate(mod = map(.x = data, .f = f_model))
+=======
+f_model <- function(a_df) {
+  #same simple model for each country
+  lm(mod ~ a_df, data = a_df)
+}
+```
+
+```{r}
+f_model <- pm2_f %>%
+  #remeber map(data, function), our data named data
+  mutate(model = map(a_df, .f = f_model)) 
+>>>>>>> 3b6f7cf157d8628a108239fc6d2e162b09304da4
 ```
