@@ -5,7 +5,9 @@ editor: visual
 author: Marit Rygg Fredheim & Namra Shahid
 ---
 
-## Assignment 4
+# Assignment 4
+
+## Mange modeller
 
 ```{r}
 library(tidyverse)
@@ -22,11 +24,45 @@ library(viridis)
 library(stringr)
 ```
 
+I dette arbeidskravet skal vi undersøke hvilke faktorer som bestemmer prisen, per kvadratmeter for eneboliger i norske kommuner.
+Dataene vi skal bruke skal vi hente fra SSB.
+Vi starter med et ferdig datasett som vi utvider.
+Vi laster ned datasettet pm2.Rdata fra Canvas.
+
 ### Leser inn data
 
 ```{r}
 load(file = "data/pm2.Rdata")
 ```
+
+**Variablene**\
+Datafilen pm2 inneholder variablene (for 220 kommuner) årene 2008 til 2017.
+
+**knr** Kommunenummer, fire siffer
+
+**knavn** Kommunenavn
+
+**aar** Årstall
+
+**pm2** Gjennomsnittspris per m2 for eneboliger.
+Gjennomsnitt for hver kommune.
+Fra tabell 06035.
+
+**ya_p** Andel av befolkningen i yrkesaktiv alder, definert som 20 til 64 år.
+Fra tabell 07459.
+
+**inc_h** Andelen av husholdninger i en kommune som har inntekt over 750000.
+Fra tabell 07183.
+
+**uni_p** Andel av befolkningen i en kommune som har universitets- eller høyskoleutdanning.
+Fra tabell 09429.
+
+**nytt_boarel_pp** Totalt antall kvadratmeter ferdigstilte eneboliger relativt til befolkning, dvs.
+nye ferdigstilte m2 per person.
+Fra tabell 05940.
+
+**oms** Omsetning i varehandelen.
+Fra tabell 04776.
 
 ```{r}
 pm2 %>%
@@ -65,6 +101,11 @@ pm2
 ```
 
 ### Sysselsatte
+
+Vi skal her hente data fra SSB, for å kunne generere en ny variabel.
+Vi skal finne ut andel av befolkning i arbeidsfør alder som er sysselsatt.
+Arbeidsfør alder blir her definert som 20-66 år.
+Antall sysselsatte i hver kommune kan vi finne fra tabell 13122 hos SSB.
 
 ```{r}
 metadata_13122 <- ApiData(
@@ -129,7 +170,7 @@ pm2 %<>%
   left_join(ss, by = c("aar", "knr"))
 ```
 
-Gjør så tilsvarende for befolkning i alderen 20-66 år (tabell 07459).
+Henter så tilsvarende for befolkning i alderen 20-66 år fra tabell 07459 hos SSB.
 
 ```{r}
 metadata_07459 <- ApiData(
@@ -141,8 +182,6 @@ metadata_07459 <- ApiData(
 ```{r}
 names(metadata_07459)
 ```
-
-Sjekker de ulike, Region og Tid vet vi hva skal være.
 
 ```{r}
 # Kan prøve med Kjonn = FALSE og se om det gir total så
@@ -160,11 +199,6 @@ metadata_07459$Alder |>
 ```{r}
 metadata_07459$ContentsCode
 ```
-
-Ser fra API-spørring SSBs web-side at vi kan få alderskategorien vi ønsker vha.
-"agg:Funksjonell2a,F309" som er gitt som hint i oppgaveteksten.
-
-Hent ned befolkningsdata fra 07459, merge med ss og regn ut (sysselsatte_20_66/befolkning_20_66)\*100
 
 ```{r}
 #| echo: false
@@ -234,7 +268,7 @@ head(n = 5) %>%
 print()
 ```
 
-#### Modell
+### Modell
 
 ```{r}
 pm2 <- pm2 %>%
@@ -262,8 +296,6 @@ print(strwrap(mod1), quote = FALSE)
 ```{r}
 lm1 <- lm(mod1, data = pm2)
 ```
-
-14
 
 ```{r}
   summary(lm1)
@@ -301,23 +333,15 @@ Vi kan se at det er en sammenheng her, siden de fleste Estimate verdiene har neg
 Videre ser vi at ya_p har en positiv Estimate verdi på 767.961063, noe som tyder på at det er en positiv sammenheng også.
 Estimate verdiene begynner med å være negative, deretter blir for eksempel ya_p, inc_h, uni_p positiv, deretter blir nytt_bareal_pp verdien plutselig negativ.
 
-17
-
 ```{r}
 pm2 <- pm2 %>%
   add_residuals(lm1)
 ```
 
-\
-18
-
 ```{r}
 pm2 <- pm2 %>%
   mutate(aar_d = make_date(aar))
 ```
-
-\
-19
 
 ```{r}
 pm2 <- pm2 %<>%
@@ -345,9 +369,9 @@ pm2_red %>%
   theme(legend.position = "bottom")
 ```
 
-20
+20\.
 
-Aller først er det slik at denne plotten i Figur 1 viser oss utviklingen i gjennomsnittlig residual fra modell 1 for utvalgte fylker.
+Aller først er det slik at denne plotten i @fig-gjennomsnittlig_residual viser oss utviklingen i gjennomsnittlig residual fra modell 1 for utvalgte fylker.
 På x-aksen ser vi årstallet og på y-aksen tall på residualene. 
 
 Det vi kan si her ut fra modellens treffsikkerhet er at den treffer noe bra.
@@ -357,14 +381,16 @@ På andre siden skiller fnr: 03 seg, siden den ligger over alle fnr.
 Vi kan her konkludere med å si at fnr: 03 har hatt en positiv residual utvikling. 
 
 \
-\
-21
+21.
 
-#sjekker senere-----
+Det vi kommer frem til er at vi kan fjerne variabelen inc_h som er andel husholdninger i en kommune som har inntekt over 750 000.
+
+Vi ser ikke noe grunn for at andel husholdninger i en kommune som har inntekt over 750 000, skal ha noe stor innvirkning på prisen per kvadratmeter per eneboliger.
+Vi ser heller ikke at oms (omsetning i varehandel), ya_p (andel av befolkning i yrkesatkiv alder) og uni_p (andel av befolkning i en kommune som har universitet eller høyskole utdanning), skal ha stor betydning for pris per kvadratmeter for eneboliger.
+For å ikke få store forskjeller fra modell 1 til modell 2, velger vi å kun kutte en variabel altså inc_h.
 
 ```{r}
-mod2 <- paste("pm2 ~ aar_f", "ya_p",
-"inc_h", "uni_p",
+mod2 <- paste("pm2 ~ aar_f", "ya_p", "uni_p",
 "nytt_bareal_pp", "oms", "andel_ss", sep = " + ")
 ```
 
@@ -378,25 +404,18 @@ summary(lm2)
 
 ### Dummy fylke og år
 
-22
-
 ```{r}
 mod3 <- mod2
 ```
 
 ```{r}
-mod3 <- paste("pm2 ~ aar_f", "ya_p",
-"inc_h", "uni_p",
+mod3 <- paste("pm2 ~ aar_f", "ya_p", "uni_p",
 "nytt_bareal_pp", "oms", "andel_ss", "fylke", sep = " + ")
 ```
-
-23
 
 ```{r}
 lm3 <- lm(mod3, data = pm2)
 ```
-
-24
 
 ```{r}
 pm2 <- pm2 %>%
@@ -407,13 +426,20 @@ pm2 <- pm2 %>%
 summary(lm3)
 ```
 
-[Diskuter!!!!!]{.underline}
+25\.
 
-25 diskuter!!!
+Koeffisientene for fylke Oslo (03) viser oss at det er postive verdier.
+Dette tyder å at f.eks Estimate verdien som er 9.751 er positiv og at modellen for fylke Oslo er da brukbar.
+Vi ser også at St.Error verdien for fylke Oslo er 8.361, noe som forteller oss hvor spredt datasettet vårt er.
+Vi har en std.error verdi som ligger over 0 og er positiv, noe som tyder på at datasettet vårt for fylke Oslo er spredt.
+T-valusen for fylke Oslo er 11.662.
+Hvis vi nå bruker 5% signifikansk nivår, altså 2,5%.
+Ser vi at vår t-value ligger langt over den, noe som forteller oss at vi testen er ikke statistisk signifikant, siden vår t-value er mye større enn signifikansk nivået på 2,5%.
 
-26 samme som 24?
-
-27
+Rogaland fylke (11) har en std.error verdi på -5.331 noe som forteller oss at verdiene våre for dette fylket ikke er så spredt og at de er negative.
+T-value for Rogaland fylket er -1.753.
+Hvis vi tar 2,5% signifikansk nivå som i utgangspunkt, ser vi at vår t-value er lavere enn signifikansk verdien.
+Vi kan her konkludere med at modellen for selve fylket ikke er statistisk signifikant.
 
 ```{r}
 #| label: fig-utvikling_residual
@@ -470,7 +496,12 @@ i\) Det vi kan se ut i fra fylkene i kommunene i Rogaland er at det er en del sp
 Vi kan se at Klepp får mye oppmerksomhet i første øyeblikk, siden selve fylket ligger på toppen av modellen og vi kan da si med andre ord at fylket Klepp blir ovevurdert.
 Det fylket som blir blir undervurdert er Sauda, som da i motsetning til Klepp ligger helt nederst nærmere bunnlinjen i modellen.
 
+[Tabell Marit!]{.underline}
+
 ### Modell for hvert fylke
+
+Fylkene fra 2017 var: 01 Østfold, 02 Akershus, 03 Oslo, 04 Hedmark, 05 Oppland, 06 Buskerud, 07 Vestfold, 08 Telemark, 09 Aust-Agder, 10 Vest-Agder, 11 Rogaland, 12 Hordaland, 14 Sogn og Fjordane, 15 Møre og Romsdal, 16 Sør-Trøndelag, 17 Nord-Trøndelag, 18 Nordland, 19\
+Troms, 20 Finnmark.
 
 ```{r}
 pm2_f <- pm2 %>% 
