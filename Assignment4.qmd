@@ -531,23 +531,130 @@ print()
 ```
 
 ```{r}
-f_model <- function(a_df) {
+mod4 <- paste("pm2 ~ aar_f", "knr", sep = " + ")
+
+f_model <- function(a_df, mod) {
    lm(
-      formula = pm2 ~ fylke,
-      data = a_df,
+      formula = mod,
+      data = a_df
   )
 }
 ```
 
 ```{r}
-#f_model <- function(a_df) {
-  # same simple model for each country
-  #lm(pm2 ~ fnr, data = a_df)
-#}
+pm2_f %>%
+  filter(fnr == "01") %>%
+  .$data %>%
+  .[[1]]
+
+pm2_f <- pm2_f %>%
+  #fjerner Oslo
+  filter(fnr != "03") %>%
+  mutate(model = map2(mod4, .x = data, .f = f_model)) 
+
+print(pm2_f, n = 2)
 ```
 
 ```{r}
+pm2_f %>% 
+  # velg rogaland
+  filter(fnr == "11") %>%
+  # velg data variabelen for rogaland
+  .$model %>% 
+  .[[1]] %>%
+  summary()
+```
+
+```{r}
+mod5 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", "uni_p", "andel_ss", sep = " + ")
+```
+
+```{r}
+lm5 <- lm(mod5, data = pm2)
+
+pm2_f %>% 
+  # velg rogaland
+  filter(fnr == "11") %>%
+  # velg data variabelen for rogaland
+  .$model %>% 
+  .[[1]] %>%
+  summary()
+```
+
+\^34: Kommenter resultatene (feil tall no)
+
+35
+
+```{r}
 pm2_f <- pm2_f %>%
-  #remeber map(data, function), our data named data
-  mutate(model = map(.x = data, .f = f_model)) 
+  add_residuals(lm5)
+```
+
+36-37
+
+```{r}
+#| label: fig-1
+#| fig-cap: ---
+
+
+res <- pm2_f %>% 
+  unnest(res)
+
+res %>% 
+  filter(fnr == "11") %>% 
+  ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
+  geom_point() +
+  geom_line(aes(group = knr), alpha = 1/6) +
+  geom_hline(yintercept = 0)
+```
+
+38
+
+```{r}
+broom::glance
+```
+
+39
+
+```{r}
+#| label: fig-2
+#| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
+res %>% 
+  ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
+  # because of group = country one line for each country
+  geom_line(aes(group = knr), alpha = 1/6) +
+  # general smooth for all countries
+  geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 0)
+```
+
+40
+
+```{r}
+#| label: fig-3
+#| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
+res %>% 
+  filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
+  ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
+  # because of group = country one line for each country
+  geom_line(aes(group = knr), alpha = 1/6) +
+  # general smooth for all countries
+  geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 0)
+```
+
+41
+
+```{r}
+#| label: fig-utvikling_residual
+#| fig-cap: Plot av utviklingen i residualene for de valgte fylkene
+pm2 %>% 
+  filter(knr %in% c("0301", "1102", "1106", "1201")) %>%
+  ggplot(mapping = aes(x = aar_d, y = res_m5)) +
+  geom_line(aes(group = knavn), alpha = 0.4) +
+  scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+  geom_hline(yintercept = 0, colour = "black") +
+  theme(legend.position = 'bottom') +
+  geom_smooth(mapping = aes(x = aar_d, y = res_m5), se = FALSE) +
+    facet_wrap(~fylke) 
 ```
