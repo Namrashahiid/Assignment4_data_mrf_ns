@@ -10,18 +10,30 @@ author: Marit Rygg Fredheim & Namra Shahid
 ## Mange modeller
 
 ```{r}
-library(tidyverse)
-library(lubridate)
-library(PxWebApiData)
-library(magrittr)
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(modelr)
+  options(na.action = na.exclude)
+  library(lubridate)
+  library(tseries)
+  library(patchwork)
+  library(broom)
+  library(PxWebApiData)
+  library(magrittr)
+  library(dplyr)
+  library(ggplot2)
+  library(ggedit)
+  
+  library(broom)
+  library(lmtest)
+  library(sandwich)
+  library(viridis)
+  library(stringr)
+})
 
-library(lubridate)
-library(modelr)
-library(broom)
-library(lmtest)
-library(sandwich)
-library(viridis)
-library(stringr)
+
+
+
 ```
 
 I dette arbeidskravet skal vi undersøke hvilke faktorer som bestemmer prisen, per kvadratmeter for eneboliger i norske kommuner.
@@ -565,6 +577,8 @@ pm2_f %>%
   summary()
 ```
 
+34
+
 ```{r}
 mod5 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", "uni_p", "andel_ss", sep = " + ")
 ```
@@ -586,8 +600,10 @@ pm2_f %>%
 35
 
 ```{r}
-pm2_f <- pm2_f %>%
-  add_residuals(lm5)
+pm2_f <- pm2_f %>% 
+  mutate(
+    res_m5 = map2(data, model, add_residuals)
+  )
 ```
 
 36-37
@@ -595,12 +611,10 @@ pm2_f <- pm2_f %>%
 ```{r}
 #| label: fig-1
 #| fig-cap: ---
+res_m5 <- pm2_f %>% 
+  unnest(res_m5)
 
-
-res <- pm2_f %>% 
-  unnest(res)
-
-res %>% 
+res_m5 %>% 
   filter(fnr == "11") %>% 
   ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
   geom_point() +
