@@ -712,11 +712,10 @@ pm2_f %>%
 #| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
 pm2_f %>% 
   ggplot(mapping = aes(x = aar_d, y = resid)) + 
-  # because of group = country one line for each country
+  # ei linje for kvart fylke, group = fnr
   geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
-  # general smooth for all countries
-  geom_smooth(se = FALSE) +
-  geom_hline(yintercept = 0)
+  # general smooth for alle fylker
+  geom_smooth(se = FALSE) 
 ```
 
 40
@@ -727,9 +726,9 @@ pm2_f %>%
 pm2_f %>% 
   filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
   ggplot(mapping = aes(x = aar_d, y = resid)) + 
-  # because of group = country one line for each country
+  # ei linje for kvart fylke, group = fnr
   geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
-  # general smooth for all countries
+  # general smooth for alle fylker
   geom_smooth(se = FALSE) +
   geom_hline(yintercept = 0)
 ```
