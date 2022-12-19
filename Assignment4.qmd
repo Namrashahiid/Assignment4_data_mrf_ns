@@ -543,12 +543,21 @@ print()
 ```
 
 ```{r}
+
+# Kan være lurt å utvide til to argumenter slik at også
+# modellen kan angis
+f_model <- function(a_df, a_mod) {
+   lm(
+      formula = a_mod,
+      data = a_df,
+
 mod4 <- paste("pm2 ~ aar_f", "knr", sep = " + ")
 
 f_model <- function(a_df, mod) {
    lm(
       formula = mod,
       data = a_df
+
   )
 }
 ```
@@ -568,6 +577,30 @@ print(pm2_f, n = 2)
 ```
 
 ```{r}
+
+# Nå kan vi ankelt angi modellen vi ønsker å bruke
+mod_f = "pm2 ~ knr + aar_f + ya_p + uni_p + andel_ss"
+pm2_f <- pm2_f %>%
+  filter(fnr != "03") %>% 
+  #remeber map(data, function), our data named data
+  # Må bruke map2 siden to argumenter hhv. data og modell
+  mutate(model = map2(.x = data, .y = mod_f, .f = f_model)) 
+```
+
+```{r}
+# Østfold
+summary(pm2_f$model[[1]])
+```
+
+```{r}
+# Rogaland
+summary(pm2_f$model[[10]])
+```
+
+```{r}
+#| echo: false
+# siste
+
 pm2_f %>% 
   # velg rogaland
   filter(fnr == "11") %>%
