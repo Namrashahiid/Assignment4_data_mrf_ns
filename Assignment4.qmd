@@ -310,6 +310,8 @@ lm1 <- lm(mod1, data = pm2)
 ```
 
 ```{r}
+#| label: tab-regrapport_mod1
+#| tab-cap: Regresjonsrapport modell 1
   summary(lm1)
 ```
 
@@ -411,6 +413,8 @@ lm2 <- lm(mod2, data = pm2)
 ```
 
 ```{r}
+#| label: tab-regrapport_mod2
+#| tab-cap: Regresjonsrapport for fylke Rogaland modell 2
 summary(lm2)
 ```
 
@@ -435,6 +439,8 @@ pm2 <- pm2 %>%
 ```
 
 ```{r}
+#| label: tab-regrapport_mod3
+#| tab-cap: Regresjonsrapport - Dummy fylke og år modell 3
 summary(lm3)
 ```
 
@@ -498,7 +504,7 @@ pm2 %>% filter(knr %in% c("1119", "1120", "1127",
                ) %>%
 ggplot(mapping = aes(x = aar_d, y = res_m3)) +
 scale_color_viridis(discrete = TRUE, option = "A") +
-geom_line(aes(group = knavn, colour = knavn, size =knavn)) +
+geom_line(aes(group = knavn, colour = knavn, size = knavn)) +
 scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
 geom_hline(yintercept = 0) +
 theme(legend.position = 'bottom')
@@ -579,6 +585,8 @@ print(pm2_f, n = 2)
 ```
 
 ```{r}
+#| label: tab-regrapport_rogaland_mod4
+#| tab-cap: Regresjonsrapport for fylke Rogaland modell 4
 pm2_f %>%
   filter(fnr == "11") %>%
   #velg data variabelen for rogaland
@@ -604,6 +612,8 @@ summary(pm2_f$model[[1]])
 ```
 
 ```{r}
+#| label: tab-regrapport_rogaland_mod5
+#| tab-cap: Regresjonsrapport for fylke Rogaland modell 5
 # Rogaland
 summary(pm2_f$model[[10]])
 ```
@@ -661,29 +671,49 @@ print(res_m5, n = 4)
 ```{r}
 #| label: fig-1
 #| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland
-res_m5 %>% 
+pm2_f %>% 
   filter(fnr == "11") %>% 
-  ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
-  geom_point() +
-  geom_line(aes(group = knr), alpha = 1/6) +
+  ggplot(mapping = aes(x = aar_d, y = resid)) + 
+  #geom_point() +
+  geom_smooth(se = FALSE) +
+  geom_line(aes(group = knr, colour = knr)) +
   geom_hline(yintercept = 0)
 ```
 
 38
 
 ```{r}
-broom::glance
+pm2_f %>%
+  group_by(fnr, aar) %>%
+  mutate(mod_summary = map(.x = model, .f = glance)) %>%
+  unnest(mod_summary) %>% 
+  # don't want too many rows in the slide
+  print(n = 4)
+```
+
+```{r}
+pm2_f <- pm2_f %>%
+  mutate(mod_summary = map(.x = model, .f = glance))
+```
+
+```{r}
+pm2_f %>% 
+  # drop = TRUE, deprecated, use select() instead
+  select(-data, -model, -resid) %>% 
+  # new interface, wrap in c()
+  unnest(c(mod_summary)) %>% 
+  print(n = 4)
 ```
 
 39
 
 ```{r}
-#| label: fig-2
+#| label: fig-utvikling_res_alle_fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
-res %>% 
-  ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
+pm2_f %>% 
+  ggplot(mapping = aes(x = aar_d, y = resid)) + 
   # because of group = country one line for each country
-  geom_line(aes(group = knr), alpha = 1/6) +
+  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
   # general smooth for all countries
   geom_smooth(se = FALSE) +
   geom_hline(yintercept = 0)
@@ -692,13 +722,13 @@ res %>%
 40
 
 ```{r}
-#| label: fig-3
+#| label: fig-utvikling_res_6fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
-res %>% 
+pm2_f %>% 
   filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
-  ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
+  ggplot(mapping = aes(x = aar_d, y = resid)) + 
   # because of group = country one line for each country
-  geom_line(aes(group = knr), alpha = 1/6) +
+  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
   # general smooth for all countries
   geom_smooth(se = FALSE) +
   geom_hline(yintercept = 0)
@@ -707,15 +737,14 @@ res %>%
 41
 
 ```{r}
-#| label: fig-utvikling_residual
-#| fig-cap: Plot av utviklingen i residualene for de valgte fylkene
+#| label: fig-utvikling_residual_ksshb
+#| fig-cap: Utviklingen i residualene for Kritiansand, Sandnes, Stavanger, Haugesund og Bergen
 pm2 %>% 
-  filter(knr %in% c("0301", "1102", "1106", "1201")) %>%
-  ggplot(mapping = aes(x = aar_d, y = res_m5)) +
-  geom_line(aes(group = knavn), alpha = 0.4) +
+  filter(knr %in% c("1001", "1102", "1103", "1106", "1201")) %>%
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_line(aes(group = knavn, colour = knr)) +
   scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
   geom_hline(yintercept = 0, colour = "black") +
   theme(legend.position = 'bottom') +
-  geom_smooth(mapping = aes(x = aar_d, y = res_m5), se = FALSE) +
     facet_wrap(~fylke) 
 ```
