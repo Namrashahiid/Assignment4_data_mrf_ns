@@ -664,20 +664,19 @@ pm2_f <- pm2_f %>%
 
 ```{r}
 pm2_f <- pm2_f %>% 
-  unnest(res_m5) %>%
-print(res_m5, n = 4)
+  unnest(resid) %>%
+print(resid, n = 4)
 ```
 
 ```{r}
-#| label: fig-1
+#| label: fig-utvikling_res_rogaland
 #| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland
 pm2_f %>% 
   filter(fnr == "11") %>% 
-  ggplot(mapping = aes(x = aar_d, y = resid)) + 
+  ggplot(mapping = aes(x = aar_d, y = resid, colour = knr)) + 
   #geom_point() +
-  geom_smooth(se = FALSE) +
-  geom_line(aes(group = knr, colour = knr)) +
-  geom_hline(yintercept = 0)
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE) 
 ```
 
 38
@@ -710,30 +709,33 @@ pm2_f %>%
 ```{r}
 #| label: fig-utvikling_res_alle_fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
-pm2_f %>% 
-  ggplot(mapping = aes(x = aar_d, y = resid)) + 
-  # ei linje for kvart fylke, group = fnr
-  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
-  # general smooth for alle fylker
-  geom_smooth(se = FALSE) 
+pm2_f %>%
+  unnest(resid) %>%
+  group_by(fnr, aar_d) %>%
+  summarise(mean_res_m5 = mean(resid)) %>%
+  ggplot(mapping = aes(x = aar_d, y = mean_res_m5, colour = fnr
+                      )) +
+  geom_smooth(se = FALSE) + 
+  geom_hline(yintercept = 0) + 
+  scale_size_manual() +
+  theme(legend.position = 'bottom')
 ```
-
-40
 
 ```{r}
 #| label: fig-utvikling_res_6fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
-pm2_f %>% 
+pm2_f %>%
   filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
-  ggplot(mapping = aes(x = aar_d, y = resid)) + 
-  # ei linje for kvart fylke, group = fnr
-  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
-  # general smooth for alle fylker
-  geom_smooth(se = FALSE) +
-  geom_hline(yintercept = 0)
+  unnest(resid) %>%
+  group_by(fnr, aar_d) %>%
+  summarise(mean_res_m5 = mean(resid)) %>%
+  ggplot(mapping = aes(x = aar_d, y = mean_res_m5, color = fnr
+                      )) +
+  geom_smooth(se = FALSE) + 
+  geom_hline(yintercept = 0) + 
+  scale_size_manual() +
+  theme(legend.position = 'bottom')
 ```
-
-41
 
 ```{r}
 #| label: fig-utvikling_residual_ksshb
@@ -746,4 +748,28 @@ pm2 %>%
   geom_hline(yintercept = 0, colour = "black") +
   theme(legend.position = 'bottom') +
     facet_wrap(~fylke) 
+```
+
+```{r}
+#39
+#| label: fig-utvikling_res_alle_fylker
+#| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
+pm2_f %>% 
+  ggplot(mapping = aes(x = aar_d, y = resid)) + 
+  # ei linje for kvart fylke, group = fnr
+  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
+  # general smooth for alle fylker
+  geom_smooth(se = FALSE) 
+
+#40
+#| label: fig-utvikling_res_6fylker
+#| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
+pm2_f %>% 
+  filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
+  ggplot(mapping = aes(x = aar_d, y = resid)) + 
+  # ei linje for kvart fylke, group = fnr
+  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
+  # general smooth for alle fylker
+  geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 0)
 ```
