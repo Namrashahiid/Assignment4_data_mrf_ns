@@ -618,6 +618,27 @@ summary(pm2_f$model[[1]])
 summary(pm2_f$model[[10]])
 ```
 
+Aller først det vi ser fra resultatene fra @tab-regrapport_rogaland_mod5 er for eksempel Min value verdien er: -3133.4.
+Denne forteller oss at det er nedgang i vår regresjonsanalyse.
+Min og max verdiene forteller oss eller gir oss en ide om hvordan data distribusjonen.
+Vår Max verdi er 3634.5, som er en positiv verdi.
+Det vi kan konkludere med her nå som vi sammenligner Max og Min verdi er at det er himmel og jord forskjell mellom verdiene.
+
+Hvis vi nå ser fra @tab-regrapport_rogaland_mod5 Estimate verdien til knr1102, er den på 3084.04.
+Noe som forteller oss at verdiene våre i regresjonsanalysen øker med 3084.04 for knr1102. 
+
+Std.error verdien er 2102.76, noe som forteller oss at regresjonsanalysen vår er sterk.
+Verdien her er positiv, noe som tyder på at det er en positiv spredning i vårt datasett. 
+
+T-valuen vår er 1.467.
+Hvis vi bruker 5%, altså 2,5% som signifikans nivå, ser vi med en gang at T-valuen er mindre enn signifikansnivået og da kan vi her konkludere med at knr1102 er signifikant i regresjonsanalysen vår. 
+ 
+
+Ifølge @tab-regrapport_rogaland_mod4 ser vi at tallene for knr1102 er større, enn tallene representert fra tabell for Rogaland øverst.
+I @tab-regrapport_rogaland_mod4 er feks Estimate valuen 8342.30, std.error verdien er 497.64 og t-valuen er da 16.764.
+Ut i fra t-valuen er ikke regeresjonanlysen statistisk signifikant, siden vår t-value er mye større enn 2,5% signifikansnivå.
+Vi kan her konkludere med at det er store forskjeller mellom tabellene @tab-regrapport_rogaland_mod5 og @tab-regrapport_rogaland_mod4
+
 ```{r}
 #| echo: false
 # siste
