@@ -1,6 +1,8 @@
 ---
 title: "Assignment4"
-format: html
+format: 
+  html:
+    code-fold: true
 editor: visual
 author: Marit Rygg Fredheim & Namra Shahid
 ---
@@ -625,54 +627,18 @@ Vår Max verdi er 3634.5, som er en positiv verdi.
 Det vi kan konkludere med her nå som vi sammenligner Max og Min verdi er at det er himmel og jord forskjell mellom verdiene.
 
 Hvis vi nå ser fra @tab-regrapport_rogaland_mod5 Estimate verdien til knr1102, er den på 3084.04.
-Noe som forteller oss at verdiene våre i regresjonsanalysen øker med 3084.04 for knr1102. 
+Noe som forteller oss at verdiene våre i regresjonsanalysen øker med 3084.04 for knr1102.
 
 Std.error verdien er 2102.76, noe som forteller oss at regresjonsanalysen vår er sterk.
-Verdien her er positiv, noe som tyder på at det er en positiv spredning i vårt datasett. 
+Verdien her er positiv, noe som tyder på at det er en positiv spredning i vårt datasett.
 
 T-valuen vår er 1.467.
 Hvis vi bruker 5%, altså 2,5% som signifikans nivå, ser vi med en gang at T-valuen er mindre enn signifikansnivået og da kan vi her konkludere med at knr1102 er signifikant i regresjonsanalysen vår. 
- 
 
 Ifølge @tab-regrapport_rogaland_mod4 ser vi at tallene for knr1102 er større, enn tallene representert fra tabell for Rogaland øverst.
 I @tab-regrapport_rogaland_mod4 er feks Estimate valuen 8342.30, std.error verdien er 497.64 og t-valuen er da 16.764.
 Ut i fra t-valuen er ikke regeresjonanlysen statistisk signifikant, siden vår t-value er mye større enn 2,5% signifikansnivå.
 Vi kan her konkludere med at det er store forskjeller mellom tabellene @tab-regrapport_rogaland_mod5 og @tab-regrapport_rogaland_mod4
-
-```{r}
-#| echo: false
-# siste
-
-#pm2_f %>% 
-  # velg rogaland
-  #filter(fnr == "11") %>%
-  # velg data variabelen for rogaland
-  #.$model %>% 
-  #.[[1]] %>%
-  #summary()
-```
-
-34
-
-```{r}
-#mod5 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", "uni_p", "andel_ss", sep = " + ")
-```
-
-```{r}
-#lm5 <- lm(mod5, data = pm2)
-
-#pm2_f %>% 
-  # velg rogaland
-  #filter(fnr == "11") %>%
-  # velg data variabelen for rogaland
-  #.$model %>% 
-  #.[[1]] %>%
-  #summary()
-```
-
-\^34: Kommenter resultatene (feil tall no)
-
-35
 
 ```{r}
 pm2_f <- pm2_f %>% 
@@ -681,12 +647,10 @@ pm2_f <- pm2_f %>%
   )
 ```
 
-36-37
-
 ```{r}
 pm2_f <- pm2_f %>% 
-  unnest(resid) %>%
-print(resid, n = 4)
+  unnest(res_m5) %>%
+print(pm2_f, n = 4)
 ```
 
 ```{r}
@@ -694,13 +658,10 @@ print(resid, n = 4)
 #| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland
 pm2_f %>% 
   filter(fnr == "11") %>% 
-  ggplot(mapping = aes(x = aar_d, y = resid, colour = knr)) + 
-  #geom_point() +
+  ggplot(mapping = aes(x = aar_d, y = resid, group = knr, colour = knr)) + 
   geom_hline(yintercept = 0) +
   geom_smooth(se = FALSE) 
 ```
-
-38
 
 ```{r}
 pm2_f %>%
@@ -724,8 +685,6 @@ pm2_f %>%
   unnest(c(mod_summary)) %>% 
   print(n = 4)
 ```
-
-39
 
 ```{r}
 #| label: fig-utvikling_res_alle_fylker
@@ -769,28 +728,4 @@ pm2 %>%
   geom_hline(yintercept = 0, colour = "black") +
   theme(legend.position = 'bottom') +
     facet_wrap(~fylke) 
-```
-
-```{r}
-#39
-#| label: fig-utvikling_res_alle_fylker
-#| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
-pm2_f %>% 
-  ggplot(mapping = aes(x = aar_d, y = resid)) + 
-  # ei linje for kvart fylke, group = fnr
-  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
-  # general smooth for alle fylker
-  geom_smooth(se = FALSE) 
-
-#40
-#| label: fig-utvikling_res_6fylker
-#| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
-pm2_f %>% 
-  filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
-  ggplot(mapping = aes(x = aar_d, y = resid)) + 
-  # ei linje for kvart fylke, group = fnr
-  geom_line(aes(group = fnr, colour = fnr), alpha = 1/6) +
-  # general smooth for alle fylker
-  geom_smooth(se = FALSE) +
-  geom_hline(yintercept = 0)
 ```
