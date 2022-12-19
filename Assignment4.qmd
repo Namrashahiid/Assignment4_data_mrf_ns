@@ -549,7 +549,9 @@ print()
 f_model <- function(a_df, a_mod) {
    lm(
       formula = a_mod,
-      data = a_df,
+      data = a_df
+    )
+}
 
 mod4 <- paste("pm2 ~ aar_f", "knr", sep = " + ")
 
@@ -577,14 +579,23 @@ print(pm2_f, n = 2)
 ```
 
 ```{r}
+pm2_f %>%
+  filter(fnr == "11") %>%
+  #velg data variabelen for rogaland
+  .$model %>%
+  .[[1]] %>%
+  summary()
+```
+
+```{r}
 
 # Nå kan vi ankelt angi modellen vi ønsker å bruke
-mod_f = "pm2 ~ knr + aar_f + ya_p + uni_p + andel_ss"
+mod5 = "pm2 ~ knr + aar_f + ya_p + uni_p + andel_ss"
 pm2_f <- pm2_f %>%
   filter(fnr != "03") %>% 
   #remeber map(data, function), our data named data
   # Må bruke map2 siden to argumenter hhv. data og modell
-  mutate(model = map2(.x = data, .y = mod_f, .f = f_model)) 
+  mutate(model = map2(.x = data, .y = mod5, .f = f_model)) 
 ```
 
 ```{r}
@@ -601,31 +612,31 @@ summary(pm2_f$model[[10]])
 #| echo: false
 # siste
 
-pm2_f %>% 
+#pm2_f %>% 
   # velg rogaland
-  filter(fnr == "11") %>%
+  #filter(fnr == "11") %>%
   # velg data variabelen for rogaland
-  .$model %>% 
-  .[[1]] %>%
-  summary()
+  #.$model %>% 
+  #.[[1]] %>%
+  #summary()
 ```
 
 34
 
 ```{r}
-mod5 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", "uni_p", "andel_ss", sep = " + ")
+#mod5 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", "uni_p", "andel_ss", sep = " + ")
 ```
 
 ```{r}
-lm5 <- lm(mod5, data = pm2)
+#lm5 <- lm(mod5, data = pm2)
 
-pm2_f %>% 
+#pm2_f %>% 
   # velg rogaland
-  filter(fnr == "11") %>%
+  #filter(fnr == "11") %>%
   # velg data variabelen for rogaland
-  .$model %>% 
-  .[[1]] %>%
-  summary()
+  #.$model %>% 
+  #.[[1]] %>%
+  #summary()
 ```
 
 \^34: Kommenter resultatene (feil tall no)
@@ -642,11 +653,14 @@ pm2_f <- pm2_f %>%
 36-37
 
 ```{r}
-#| label: fig-1
-#| fig-cap: ---
-res_m5 <- pm2_f %>% 
-  unnest(res_m5)
+pm2_f <- pm2_f %>% 
+  unnest(res_m5) %>%
+print(res_m5, n = 4)
+```
 
+```{r}
+#| label: fig-1
+#| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland
 res_m5 %>% 
   filter(fnr == "11") %>% 
   ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
