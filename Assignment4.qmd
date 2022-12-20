@@ -287,7 +287,6 @@ print()
 ```{r}
 pm2 <- pm2 %>%
   mutate(
-    #fnr = str_sub(knr, 1,2),
     aar_f = str_sub(aar)
   )
 ```
@@ -295,7 +294,6 @@ pm2 <- pm2 %>%
 ```{r}
 pm2 %>%
   mutate(
-    #fnr = parse_factor(fnr, levels = fnr),
     aar_f = parse_factor(aar_f, levels = aar_f)
   )
 ```
@@ -657,8 +655,9 @@ print(pm2_f, n = 4)
 #| label: fig-utvikling_res_rogaland
 #| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland
 pm2_f %>% 
-  filter(fnr == "11") %>% 
-  ggplot(mapping = aes(x = aar_d, y = resid, group = knr, colour = knr)) + 
+  filter(fnr == "11") %>%
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_smooth(aes(colour = knr, group = knr), se = FALSE) + 
   geom_hline(yintercept = 0) +
   geom_smooth(se = FALSE) 
 ```
@@ -691,11 +690,8 @@ pm2_f %>%
 #| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
 pm2_f %>%
   unnest(resid) %>%
-  group_by(fnr, aar_d) %>%
-  summarise(mean_res_m5 = mean(resid)) %>%
-  ggplot(mapping = aes(x = aar_d, y = mean_res_m5, colour = fnr
-                      )) +
-  geom_smooth(se = FALSE) + 
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) + 
   geom_hline(yintercept = 0) + 
   scale_size_manual() +
   theme(legend.position = 'bottom')
