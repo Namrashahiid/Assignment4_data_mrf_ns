@@ -499,6 +499,8 @@ theme(legend.position = 'bottom')
 29
 
 ```{r}
+#| label: fig-utvikling_residual_7_Rogaland
+#| fig-cap: Utviklingen i residualene for 8 kommuner i Rogaland fylke
 pm2 %>% filter(knr %in% c("1119", "1120", "1127", 
                           "1121", "1130", "1135", "1106", "1149")
                ) %>%
@@ -510,11 +512,22 @@ geom_hline(yintercept = 0) +
 theme(legend.position = 'bottom')
 ```
 
+```{r}
+#| label: tbl-utvikling_residual_7_Rogaland
+#| tbl-cap: Residualene fra min modell for år 2017 for de 7 kommunene
+
+pm2 %>%
+  filter(knr %in% c("1119", "1120", "1127", 
+  "1121", "1130", "1135", "1106", "1149")) %>%
+    select(knavn, res_m3) %>%
+  group_by(knavn) %>%
+    summarise(mean_res_m3 = mean(res_m3)) %>%
+    as.tibble()
+```
+
 i\) Det vi kan se ut i fra fylkene i kommunene i Rogaland er at det er en del spredning.
 Vi kan se at Klepp får mye oppmerksomhet i første øyeblikk, siden selve fylket ligger på toppen av modellen og vi kan da si med andre ord at fylket Klepp blir ovevurdert.
 Det fylket som blir blir undervurdert er Sauda, som da i motsetning til Klepp ligger helt nederst nærmere bunnlinjen i modellen.
-
-[Tabell Marit!]{.underline}
 
 ### Modell for hvert fylke
 
@@ -658,8 +671,7 @@ pm2_f %>%
   filter(fnr == "11") %>%
   ggplot(mapping = aes(x = aar_d, y = resid)) +
   geom_smooth(aes(colour = knr, group = knr), se = FALSE) + 
-  geom_hline(yintercept = 0) +
-  geom_smooth(se = FALSE) 
+  geom_hline(yintercept = 0) 
 ```
 
 ```{r}
