@@ -690,7 +690,6 @@ Det vi kan konkludere med her nå som vi sammenligner Max og Min verdi er at det
 Hvis vi nå ser fra @tab-regrapport_rogaland_mod5 Estimate verdien til knr1102, er den på 3084.04.
 Noe som forteller oss at verdiene våre i regresjonsanalysen øker med 3084.04 for knr1102.
 
-
 Std.error verdien er 2102.76, noe som forteller oss at regresjonsanalysen vår er sterk.
 Verdien her er positiv, noe som tyder på at det er en positiv spredning i vårt datasett.
 
@@ -740,7 +739,6 @@ I @tab-regrapport_rogaland_mod4 er feks Estimate valuen 8342.30, std.error verdi
 Ut i fra t-valuen er ikke regeresjonanlysen statistisk signifikant, siden vår t-value er mye større enn 2,5% signifikansnivå.
 Vi kan her konkludere med at det er store forskjeller mellom tabellene @tab-regrapport_rogaland_mod5 og @tab-regrapport_rogaland_mod4
 
-
 ```{r}
 #| eval: false
 pm2_f <- pm2_f %>% 
@@ -776,9 +774,8 @@ pm2_f %>%
   theme(legend.position = "bottom")
 ```
 
-
-
 ```{r}
+#| eval: false
 pm2_f %>%
   group_by(fnr, aar) %>%
   mutate(mod_summary = map(.x = model, .f = glance)) %>%
@@ -818,9 +815,9 @@ pm2_f %>%
 ```{r}
 pm2_f %>% 
   # drop = TRUE, deprecated, use select() instead
-  select(-data, -model, -resid) %>% 
+  # select(-data, -model, -resid) %>% 
   # new interface, wrap in c()
-  unnest(c(mod_summary)) %>% 
+  unnest(c(mod_summary_m5)) %>% 
   print(n = 4)
 ```
 
@@ -901,11 +898,12 @@ pm2_f %>%
 ```
 
 ```{r}
+#| messsage: false
 #| label: fig-utvikling_res_alle_fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
 pm2_f %>%
-  unnest(resid) %>%
-  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  unnest(data) %>%
+  ggplot(mapping = aes(x = aar_d, y = res_m5)) +
   geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) + 
   geom_hline(yintercept = 0) + 
   scale_size_manual() +
@@ -913,13 +911,14 @@ pm2_f %>%
 ```
 
 ```{r}
+#| message: false
 #| label: fig-utvikling_res_6fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
 pm2_f %>%
   filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
-  unnest(resid) %>%
+  unnest(data) %>%
   group_by(fnr, aar_d) %>%
-  summarise(mean_res_m5 = mean(resid)) %>%
+  summarise(mean_res_m5 = mean(res_m5)) %>%
   ggplot(mapping = aes(x = aar_d, y = mean_res_m5, color = fnr
                       )) +
   geom_smooth(se = FALSE) + 
@@ -940,7 +939,7 @@ pm2_f %>%
   geom_line(aes(y = res_m4), lwd = 1.2) +
   scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
   geom_hline(yintercept = 0, colour = "black") +
-  theme(legend.position = 'bottom') +
+  theme(legend.position = 'bottom') 
   #geom_smooth(mapping = aes(x = aar_d, y = res_m5), se = FALSE) +
 ```
 
