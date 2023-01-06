@@ -1,7 +1,8 @@
 ---
 title: "Assignment4"
 format: 
-  html: default
+  html: 
+    code-fold: true
   pdf: default
   docx: default
 editor: visual
@@ -284,7 +285,6 @@ print()
 ```{r}
 pm2 <- pm2 %>%
   mutate(
-    #fnr = str_sub(knr, 1,2),
     aar_f = str_sub(aar)
   )
 ```
@@ -292,7 +292,6 @@ pm2 <- pm2 %>%
 ```{r}
 pm2 %>%
   mutate(
-    #fnr = parse_factor(fnr, levels = fnr),
     aar_f = parse_factor(aar_f, levels = aar_f)
   )
 ```
@@ -330,7 +329,9 @@ lm1 <- lm(mod1, data = pm2)
 ```
 
 ```{r}
-summary(lm1)
+#| label: tbl-regrapport_mod1
+#| tbl-cap: Regresjonsrapport modell 1
+  summary(lm1)
 ```
 
 15\.
@@ -437,6 +438,8 @@ lm2 <- lm(mod2, data = pm2)
 ```
 
 ```{r}
+#| label: tab-regrapport_mod2
+#| tab-cap: Regresjonsrapport for fylke Rogaland modell 2
 summary(lm2)
 ```
 
@@ -462,6 +465,8 @@ pm2 <- pm2 %>%
 ```
 
 ```{r}
+#| label: tab-regrapport_mod3
+#| tab-cap: Regresjonsrapport - Dummy fylke og år modell 3
 summary(lm3)
 ```
 
@@ -521,6 +526,8 @@ theme(legend.position = 'bottom')
 29
 
 ```{r}
+#| label: fig-utvikling_residual_7_Rogaland
+#| fig-cap: Utviklingen i residualene for 8 kommuner i Rogaland fylke
 pm2 %>% filter(knr %in% c("1119", "1120", "1127", 
                           "1121", "1130", "1135", "1106", "1149")
                ) %>%
@@ -532,11 +539,22 @@ geom_hline(yintercept = 0) +
 theme(legend.position = 'bottom')
 ```
 
+```{r}
+#| label: tbl-utvikling_residual_7_Rogaland
+#| tbl-cap: Residualene fra min modell for år 2017 for de 7 kommunene
+
+pm2 %>%
+  filter(knr %in% c("1119", "1120", "1127", 
+  "1121", "1130", "1135", "1106", "1149")) %>%
+    select(knavn, res_m3) %>%
+  group_by(knavn) %>%
+    summarise(mean_res_m3 = mean(res_m3)) %>%
+    as.tibble()
+```
+
 i\) Det vi kan se ut i fra fylkene i kommunene i Rogaland er at det er en del spredning.
 Vi kan se at Klepp får mye oppmerksomhet i første øyeblikk, siden selve fylket ligger på toppen av modellen og vi kan da si med andre ord at fylket Klepp blir ovevurdert.
 Det fylket som blir blir undervurdert er Sauda, som da i motsetning til Klepp ligger helt nederst nærmere bunnlinjen i modellen.
-
-[Tabell Marit!]{.underline}
 
 ### Modell for hvert fylke
 
@@ -620,10 +638,24 @@ print_mod(mod4)
 ```
 
 ```{r}
+#| label: tbl-regrapport_rogaland_mod4
+#| tbl-cap: Regresjonsrapport for fylke Rogaland modell 4
+pm2_f %>%
+  filter(fnr == "11") %>%
+  #velg data variabelen for rogaland
+  .$model %>%
+  .[[1]] %>%
+  summary()
+```
+
+```{r}
+# Nå kan vi ankelt angi modellen vi ønsker å bruke
+mod5 = "pm2 ~ knr + aar_f + ya_p + uni_p + andel_ss"
 pm2_f <- pm2_f %>%
   filter(fnr != "03") %>% 
   #remeber map(data, function), our data named data
   # Må bruke map2 siden to argumenter hhv. data og modell
+
   mutate(mod4 = map2(.x = mod4, .y = data, .f = f_model)) 
 ```
 
@@ -633,6 +665,8 @@ summary(pm2_f$mod4[[1]])
 ```
 
 ```{r}
+#| label: tab-regrapport_rogaland_mod5
+#| tab-cap: Regresjonsrapport for fylke Rogaland modell 5
 # Rogaland
 summary(pm2_f$mod4[[10]])
 ```
@@ -647,7 +681,18 @@ pm2_f %>%
   summary()
 ```
 
-34
+Aller først det vi ser fra resultatene fra @tab-regrapport_rogaland_mod5 er for eksempel Min value verdien er: -3133.4.
+Denne forteller oss at det er nedgang i vår regresjonsanalyse.
+Min og max verdiene forteller oss eller gir oss en ide om hvordan data distribusjonen.
+Vår Max verdi er 3634.5, som er en positiv verdi.
+Det vi kan konkludere med her nå som vi sammenligner Max og Min verdi er at det er himmel og jord forskjell mellom verdiene.
+
+Hvis vi nå ser fra @tab-regrapport_rogaland_mod5 Estimate verdien til knr1102, er den på 3084.04.
+Noe som forteller oss at verdiene våre i regresjonsanalysen øker med 3084.04 for knr1102.
+
+
+Std.error verdien er 2102.76, noe som forteller oss at regresjonsanalysen vår er sterk.
+Verdien her er positiv, noe som tyder på at det er en positiv spredning i vårt datasett.
 
 ```{r}
 mod5 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", 
@@ -687,6 +732,15 @@ pm2_f %>%
 
 35
 
+T-valuen vår er 1.467.
+Hvis vi bruker 5%, altså 2,5% som signifikans nivå, ser vi med en gang at T-valuen er mindre enn signifikansnivået og da kan vi her konkludere med at knr1102 er signifikant i regresjonsanalysen vår. 
+
+Ifølge @tbl-regrapport_rogaland_mod4 ser vi at tallene for knr1102 er større, enn tallene representert fra tabell for Rogaland øverst.
+I @tab-regrapport_rogaland_mod4 er feks Estimate valuen 8342.30, std.error verdien er 497.64 og t-valuen er da 16.764.
+Ut i fra t-valuen er ikke regeresjonanlysen statistisk signifikant, siden vår t-value er mye større enn 2,5% signifikansnivå.
+Vi kan her konkludere med at det er store forskjeller mellom tabellene @tab-regrapport_rogaland_mod5 og @tab-regrapport_rogaland_mod4
+
+
 ```{r}
 #| eval: false
 pm2_f <- pm2_f %>% 
@@ -705,11 +759,9 @@ pm2_f <- pm2_f %>%
     )
 ```
 
-36-37
-
 ```{r}
-#| label: fig-1
-#| fig-cap: String for caption.
+#| label: fig-utvikling-res-rogaland
+#| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland.
 # Må unnest(data), men har da tilgang til både data og residualer
 # Foreslår å bare sende data rett til ggplot uten først å lagre dem
 pm2_f %>% 
@@ -724,7 +776,16 @@ pm2_f %>%
   theme(legend.position = "bottom")
 ```
 
-38
+
+
+```{r}
+pm2_f %>%
+  group_by(fnr, aar) %>%
+  mutate(mod_summary = map(.x = model, .f = glance)) %>%
+  unnest(mod_summary) %>% 
+  # don't want too many rows in the slide
+  print(n = 4)
+```
 
 Legger til informasjon om modellene vha.
 `broom::glance()`.
@@ -754,7 +815,14 @@ pm2_f %>%
   print(width = 65)
 ```
 
-39
+```{r}
+pm2_f %>% 
+  # drop = TRUE, deprecated, use select() instead
+  select(-data, -model, -resid) %>% 
+  # new interface, wrap in c()
+  unnest(c(mod_summary)) %>% 
+  print(n = 4)
+```
 
 ```{r}
 #| message: false
@@ -832,7 +900,33 @@ pm2_f %>%
   geom_hline(yintercept = 0)
 ```
 
-41
+```{r}
+#| label: fig-utvikling_res_alle_fylker
+#| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
+pm2_f %>%
+  unnest(resid) %>%
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) + 
+  geom_hline(yintercept = 0) + 
+  scale_size_manual() +
+  theme(legend.position = 'bottom')
+```
+
+```{r}
+#| label: fig-utvikling_res_6fylker
+#| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
+pm2_f %>%
+  filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
+  unnest(resid) %>%
+  group_by(fnr, aar_d) %>%
+  summarise(mean_res_m5 = mean(resid)) %>%
+  ggplot(mapping = aes(x = aar_d, y = mean_res_m5, color = fnr
+                      )) +
+  geom_smooth(se = FALSE) + 
+  geom_hline(yintercept = 0) + 
+  scale_size_manual() +
+  theme(legend.position = 'bottom')
+```
 
 ```{r}
 #| label: fig-utvikling_mean_residual
@@ -848,5 +942,17 @@ pm2_f %>%
   geom_hline(yintercept = 0, colour = "black") +
   theme(legend.position = 'bottom') +
   #geom_smooth(mapping = aes(x = aar_d, y = res_m5), se = FALSE) +
+```
+
+```{r}
+#| label: fig-utvikling_residual_ksshb
+#| fig-cap: Utviklingen i residualene for Kritiansand, Sandnes, Stavanger, Haugesund og Bergen
+pm2 %>% 
+  filter(knr %in% c("1001", "1102", "1103", "1106", "1201")) %>%
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_line(aes(group = knavn, colour = knr)) +
+  scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+  geom_hline(yintercept = 0, colour = "black") +
+  theme(legend.position = 'bottom') +
     facet_wrap(~fylke) 
 ```
