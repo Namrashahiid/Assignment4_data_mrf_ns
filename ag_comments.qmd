@@ -1,0 +1,36 @@
+---
+title: "ag_commenst"
+format: pdf
+editor: visual
+---
+
+-   Duplikat label: fig-utvikling_residual. Endret den på fig. under punkt 41 til fig-utvikling_mean_residual
+-   Oppdatert YAML slik at de tre formatene html, pdf og docx kan genereres. Se liten drop-down meny til høyre for Render knappen.
+-   Endret fra `function(a_df, mod)` til `function(mod, a_df)`
+-   Lagt til def av en liten funksjon `print_mod()` og brukt denne til å printe de ulike modellene.
+-   I plotet fig-utvikling_residual_Rogaland, tatt vekk `size=` fra `aes()` i `geom_line()`. `size=` er ikke lenger supported og erstattes av `linewidth=`. Det er heller ikke anbefalt å benytte linjebredde som egenskap ved discrete variabler. Setter heller linewidth (vha. lwd) til 1.2.
+-   Under punkt 35. Følgende er for så vidt ok, men lager en litt tungvindt datastruktur. Årsaken er hvordan `add_residuals()` virker. Fra Help: `add_residuals(data, model, var = "resid")`. Funksjonen legger en ny variabel til data kalt "resid". Denne vil inneholde residualene for model. Koden nedenfor vil lage en ny copi av data, legge til variabelen "resid" og denne nye varaiabelen vil få navnet "resid".
+
+```{r}
+#| eval: false
+pm2_f <- pm2_f %>% 
+  mutate(
+    res_m5 = map2(data, model, add_residuals)
+    )
+```
+
+Jeg vil heller foreslå følgende kode
+
+```{r}
+#| eval: false
+pm2_f <- pm2_f %>% 
+  mutate(
+    data = map2(data, mod5, add_residuals, var = "res_m5")
+    )
+```
+
+Denne koden vil oppdatere data og legge til en variabel "res_m5" som inneholder residualene for modellen mod5.
+Sparer plass og gir en ryddigere datastruktur.
+
+-   Endringen ovenfor medfører at residualene ligger i data, så i følgende kode er det data som må ha `unnest()`. Jeg har oppdatert koden.
+-   Plotene er oppdatert til å benytte residualer fra pm2_f. Teknikken med å legge alt i pm2_f og så «neste ut» verdiene er svært kraftig. Gå gjennom koden jeg har forslått og sjekk at dere forstår hva som foregår.

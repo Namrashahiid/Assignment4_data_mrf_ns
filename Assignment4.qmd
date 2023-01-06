@@ -1,8 +1,10 @@
 ---
 title: "Assignment4"
 format: 
-  html:
+  html: 
     code-fold: true
+  pdf: default
+  docx: default
 editor: visual
 author: Marit Rygg Fredheim & Namra Shahid
 ---
@@ -32,10 +34,6 @@ suppressPackageStartupMessages({
   library(viridis)
   library(stringr)
 })
-
-
-
-
 ```
 
 I dette arbeidskravet skal vi undersøke hvilke faktorer som bestemmer prisen, per kvadratmeter for eneboliger i norske kommuner.
@@ -299,10 +297,31 @@ pm2 %>%
 ```
 
 ```{r}
-mod1 <- paste("pm2 ~ aar_f", "ya_p",
-"inc_h", "uni_p",
-"nytt_bareal_pp", "oms", "andel_ss", sep = " + ")
-print(strwrap(mod1), quote = FALSE)
+mod1 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", "uni_p",
+              "nytt_bareal_pp", "oms", "andel_ss", 
+              sep = " + ")
+```
+
+```{r}
+# Small function to print model but still preserve right
+# margin
+print_mod <- function(a_mod, width = .8*getOption("width")) {
+  ed = str_split(a_mod, pattern = " ~ ")
+  ed = first(ed)
+  ed = str_length(ed[[1]])
+  writeLines(
+    strwrap(
+      a_mod,
+      width = width,
+      exdent = ed + 3,
+      simplify = TRUE
+      )
+  )
+  }
+```
+
+```{r}
+print_mod(mod1)
 ```
 
 ```{r}
@@ -310,8 +329,8 @@ lm1 <- lm(mod1, data = pm2)
 ```
 
 ```{r}
-#| label: tab-regrapport_mod1
-#| tab-cap: Regresjonsrapport modell 1
+#| label: tbl-regrapport_mod1
+#| tbl-cap: Regresjonsrapport modell 1
   summary(lm1)
 ```
 
@@ -371,15 +390,16 @@ pm2_red <- pm2 %>%
 ```
 
 ```{r}
+#| message: false
 #| label: fig-gjennomsnittlig_residual
 #| fig-cap: Utviklingen i gjennomsnittlig residual fra modell 1 for utvalgte fylker
 pm2_red %>%
   filter(fylke %in% c("01", "02", "03", "11", "12")) %>%
   unnest(c(fylke)) %>%
-  group_by (fylke, aar_d) %>%
+  group_by(fylke, aar_d) %>%
   summarise(mean_fylke = mean(resid)) %>%
-  ggplot(aes(x=aar_d, y=mean_fylke, colour = fylke)) +
-  geom_line(lwd=1) +
+  ggplot(aes(x = aar_d, y = mean_fylke, colour = fylke)) +
+  geom_line(lwd = 1) +
   theme(legend.position = "bottom")
 ```
 
@@ -404,8 +424,13 @@ Vi ser heller ikke at oms (omsetning i varehandel), ya_p (andel av befolkning i 
 For å ikke få store forskjeller fra modell 1 til modell 2, velger vi å kun kutte en variabel altså inc_h.
 
 ```{r}
-mod2 <- paste("pm2 ~ aar_f", "ya_p", "uni_p",
-"nytt_bareal_pp", "oms", "andel_ss", sep = " + ")
+mod2 <- paste("pm2 ~ aar_f", "ya_p", "uni_p", "nytt_bareal_pp", 
+              "oms", "andel_ss", 
+              sep = " + ")
+```
+
+```{r}
+print_mod(mod2)
 ```
 
 ```{r}
@@ -421,12 +446,13 @@ summary(lm2)
 ### Dummy fylke og år
 
 ```{r}
-mod3 <- mod2
+mod3 <- paste("pm2 ~ aar_f", "ya_p", "uni_p", "nytt_bareal_pp", 
+              "oms", "andel_ss", "fylke", 
+              sep = " + ")
 ```
 
 ```{r}
-mod3 <- paste("pm2 ~ aar_f", "ya_p", "uni_p",
-"nytt_bareal_pp", "oms", "andel_ss", "fylke", sep = " + ")
+print_mod(mod3)
 ```
 
 ```{r}
@@ -460,6 +486,7 @@ Hvis vi tar 2,5% signifikansk nivå som i utgangspunkt, ser vi at vår t-value e
 Vi kan her konkludere med at modellen for selve fylket ikke er statistisk signifikant.
 
 ```{r}
+#| message: false
 #| label: fig-utvikling_residual
 #| fig-cap: Plot av utviklingen i residualene for de valgte fylkene
 pm2 %>% 
@@ -490,7 +517,7 @@ iii\)
 pm2 %>% filter(fylke %in% c("11")) %>%
 ggplot(mapping = aes(x = aar_d, y = res_m3)) +
 scale_color_viridis(discrete = TRUE, option = "D") +
-geom_line(aes(group = knavn, colour = knavn, size = knavn)) +
+geom_line(aes(group = knavn, colour = knavn), lwd = 1.2) +
 scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
 geom_hline(yintercept = 0) +
 theme(legend.position = 'bottom')
@@ -506,7 +533,7 @@ pm2 %>% filter(knr %in% c("1119", "1120", "1127",
                ) %>%
 ggplot(mapping = aes(x = aar_d, y = res_m3)) +
 scale_color_viridis(discrete = TRUE, option = "A") +
-geom_line(aes(group = knavn, colour = knavn, size = knavn)) +
+geom_line(aes(group = knavn, colour = knavn), lwd = 1.2) +
 scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
 geom_hline(yintercept = 0) +
 theme(legend.position = 'bottom')
@@ -562,23 +589,20 @@ print()
 ```
 
 ```{r}
-
-# Kan være lurt å utvide til to argumenter slik at også
-# modellen kan angis
-f_model <- function(a_df, a_mod) {
-   lm(
-      formula = a_mod,
-      data = a_df
-    )
-}
-
 mod4 <- paste("pm2 ~ aar_f", "knr", sep = " + ")
+```
 
-f_model <- function(a_df, mod) {
+```{r}
+print_mod(mod4)
+```
+
+```{r}
+# lurt å ha argumentene i samme rekkefølge som de blir brukt
+# i funksjonen
+f_model <- function(mod, a_df) {
    lm(
       formula = mod,
       data = a_df
-
   )
 }
 ```
@@ -588,18 +612,34 @@ pm2_f %>%
   filter(fnr == "01") %>%
   .$data %>%
   .[[1]]
+```
 
+```{r}
 pm2_f <- pm2_f %>%
   #fjerner Oslo
   filter(fnr != "03") %>%
-  mutate(model = map2(mod4, .x = data, .f = f_model)) 
+  # byttet om på rekkefølgen av argumentene siden definisjonen
+  # av f_model er endret
+  mutate(model = map2(.x = mod4, .y = data, .f = f_model)) 
+```
 
+```{r}
 print(pm2_f, n = 2)
 ```
 
 ```{r}
-#| label: tab-regrapport_rogaland_mod4
-#| tab-cap: Regresjonsrapport for fylke Rogaland modell 4
+# Nå kan vi ankelt angi modellen vi ønsker å bruke
+# Foreslår å kalle den mod4
+mod4 = "pm2 ~ knr + aar_f + ya_p + uni_p + andel_ss"
+```
+
+```{r}
+print_mod(mod4)
+```
+
+```{r}
+#| label: tbl-regrapport_rogaland_mod4
+#| tbl-cap: Regresjonsrapport for fylke Rogaland modell 4
 pm2_f %>%
   filter(fnr == "11") %>%
   #velg data variabelen for rogaland
@@ -609,26 +649,36 @@ pm2_f %>%
 ```
 
 ```{r}
-
 # Nå kan vi ankelt angi modellen vi ønsker å bruke
 mod5 = "pm2 ~ knr + aar_f + ya_p + uni_p + andel_ss"
 pm2_f <- pm2_f %>%
   filter(fnr != "03") %>% 
   #remeber map(data, function), our data named data
   # Må bruke map2 siden to argumenter hhv. data og modell
-  mutate(model = map2(.x = data, .y = mod5, .f = f_model)) 
+
+  mutate(mod4 = map2(.x = mod4, .y = data, .f = f_model)) 
 ```
 
 ```{r}
 # Østfold
-summary(pm2_f$model[[1]])
+summary(pm2_f$mod4[[1]])
 ```
 
 ```{r}
 #| label: tab-regrapport_rogaland_mod5
 #| tab-cap: Regresjonsrapport for fylke Rogaland modell 5
 # Rogaland
-summary(pm2_f$model[[10]])
+summary(pm2_f$mod4[[10]])
+```
+
+```{r}
+pm2_f %>% 
+  # velg rogaland
+  filter(fnr == "11") %>%
+  # velg data variabelen for rogaland
+  .$mod4 %>% 
+  .[[1]] %>%
+  summary()
 ```
 
 Aller først det vi ser fra resultatene fra @tab-regrapport_rogaland_mod5 er for eksempel Min value verdien er: -3133.4.
@@ -643,38 +693,89 @@ Noe som forteller oss at verdiene våre i regresjonsanalysen øker med 3084.04 f
 Std.error verdien er 2102.76, noe som forteller oss at regresjonsanalysen vår er sterk.
 Verdien her er positiv, noe som tyder på at det er en positiv spredning i vårt datasett.
 
+```{r}
+mod5 <- paste("pm2 ~ aar_f", "ya_p", "inc_h", 
+              "uni_p", "andel_ss", 
+              sep = " + ")
+```
+
+```{r}
+print_mod(mod5)
+```
+
+```{r}
+#| eval: false
+# legg helelr mod 5 inn i pm2_f. Se nedenefor
+lm5 <- lm(mod5, data = pm2)
+```
+
+```{r}
+pm2_f <- pm2_f %>%
+  filter(fnr != "03") %>% 
+  #remeber map(data, function), our data named data
+  # Må bruke map2 siden to argumenter hhv. data og modell
+  mutate(mod5 = map2(.x = mod5, .y = data, .f = f_model)) 
+```
+
+```{r}
+pm2_f %>% 
+  # velg rogaland
+  filter(fnr == "11") %>%
+  # velg data variabelen for rogaland
+  .$mod5 %>% 
+  .[[1]] %>%
+  summary()
+```
+
+\^34: Kommenter resultatene (feil tall no)
+
+35
+
 T-valuen vår er 1.467.
 Hvis vi bruker 5%, altså 2,5% som signifikans nivå, ser vi med en gang at T-valuen er mindre enn signifikansnivået og da kan vi her konkludere med at knr1102 er signifikant i regresjonsanalysen vår. 
 
-Ifølge @tab-regrapport_rogaland_mod4 ser vi at tallene for knr1102 er større, enn tallene representert fra tabell for Rogaland øverst.
+Ifølge @tbl-regrapport_rogaland_mod4 ser vi at tallene for knr1102 er større, enn tallene representert fra tabell for Rogaland øverst.
 I @tab-regrapport_rogaland_mod4 er feks Estimate valuen 8342.30, std.error verdien er 497.64 og t-valuen er da 16.764.
 Ut i fra t-valuen er ikke regeresjonanlysen statistisk signifikant, siden vår t-value er mye større enn 2,5% signifikansnivå.
 Vi kan her konkludere med at det er store forskjeller mellom tabellene @tab-regrapport_rogaland_mod5 og @tab-regrapport_rogaland_mod4
 
 ```{r}
+#| eval: false
 pm2_f <- pm2_f %>% 
   mutate(
     res_m5 = map2(data, model, add_residuals)
-  )
+    )
 ```
 
 ```{r}
 pm2_f <- pm2_f %>% 
-  unnest(res_m5) %>%
-print(pm2_f, n = 4)
+  mutate(
+    data = map2(data, mod5, add_residuals, var = "res_m5"),
+    # legger til residualene for mod_f også siden det er så
+    # enkelt og tar liten plass
+    data = map2(data, mod4, add_residuals, var = "res_m4")
+    )
 ```
 
 ```{r}
-#| label: fig-utvikling_res_rogaland
-#| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland
+#| label: fig-utvikling-res-rogaland
+#| fig-cap: Plot for utviklingen av residualene for kommunene i Rogaland.
+# Må unnest(data), men har da tilgang til både data og residualer
+# Foreslår å bare sende data rett til ggplot uten først å lagre dem
 pm2_f %>% 
-  filter(fnr == "11") %>%
-  ggplot(mapping = aes(x = aar_d, y = resid)) +
-  geom_smooth(aes(colour = knr, group = knr), se = FALSE) + 
-  geom_hline(yintercept = 0) 
+  unnest(data) %>% 
+  filter(fnr == "11") %>% 
+  ggplot(mapping = aes(x = aar_d, y = res_m5, 
+                       colour = knr, group = knr)
+         ) + 
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 0) +
+  theme(legend.position = "bottom")
 ```
 
 ```{r}
+#| eval: false
 pm2_f %>%
   group_by(fnr, aar) %>%
   mutate(mod_summary = map(.x = model, .f = glance)) %>%
@@ -683,26 +784,126 @@ pm2_f %>%
   print(n = 4)
 ```
 
+Legger til informasjon om modellene vha.
+`broom::glance()`.
+
 ```{r}
+# 37. Bruk broom:glance
 pm2_f <- pm2_f %>%
-  mutate(mod_summary = map(.x = model, .f = glance))
+  mutate(
+    mod_summary_m4 = map(.x = mod4, .f = glance),
+    mod_summary_m5 = map(.x = mod5, .f = glance),
+    )
+```
+
+```{r}
+#| message: false
+pm2_f %>% 
+  select(mod_summary_m4) %>% 
+  unnest(c(mod_summary_m4)) %>% 
+  print(width = 65)
+```
+
+```{r}
+#| message: false
+pm2_f %>% 
+  select(mod_summary_m5) %>% 
+  unnest(c(mod_summary_m5)) %>% 
+  print(width = 65)
 ```
 
 ```{r}
 pm2_f %>% 
   # drop = TRUE, deprecated, use select() instead
-  select(-data, -model, -resid) %>% 
+  # select(-data, -model, -resid) %>% 
   # new interface, wrap in c()
-  unnest(c(mod_summary)) %>% 
+  unnest(c(mod_summary_m5)) %>% 
   print(n = 4)
 ```
 
 ```{r}
+#| message: false
+#| label: fig-2
+#| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
+pm2_f %>% 
+  unnest(data) %>% 
+  group_by(fylke, aar_d) %>% 
+  # regner ut mean residuals per fylke per år
+  summarise(mean_res_m5 = mean(res_m5)) %>% 
+  ggplot(mapping = aes(x = aar_d, y = mean_res_m5, colour = fylke, group = fylke)) + 
+  # because of group = country one line for each country
+  geom_point() +
+  geom_line() +
+  # general smooth for all countries
+  # Bruk heller geom_point() og geom_line()
+  # geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 0) +
+  theme(legend.position = "bottom")
+```
+
+Trivielt å lage tilsvarende for modell 4
+
+```{r}
+#| message: false
+#| label: fig-2-mod4
+#| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene for modell 4
+pm2_f %>% 
+  unnest(data) %>% 
+  group_by(fylke, aar_d) %>% 
+  # regner ut mean residuals per fylke per år
+  summarise(mean_res_m4 = mean(res_m4)) %>% 
+  ggplot(mapping = aes(x = aar_d, y = mean_res_m4, 
+                       colour = fylke, group = fylke)) + 
+  # because of group = country one line for each country
+  geom_point() +
+  geom_line() +
+  # general smooth for all countries
+  # Bruk heller geom_point() og geom_line()
+  # geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 0) +
+  theme(legend.position = "bottom")
+```
+
+40
+
+```{r}
+#| eval: false
+res %>% 
+  filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
+  ggplot(mapping = aes(x = aar_d, y = res_m5)) + 
+  # because of group = country one line for each country
+  geom_line(aes(group = knr), alpha = 1/6) +
+  # general smooth for all countries
+  geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 0)
+```
+
+Gjør heller
+
+```{r}
+#| message: false
+#| label: fig-3
+#| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
+pm2_f %>% 
+  unnest(data) %>% 
+  filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
+  group_by(fylke, aar_d) %>% 
+  summarise(mean_res_m5 = mean(res_m5)) %>% 
+  ggplot(mapping = aes(x = aar_d, y = mean_res_m5, 
+                       colour = fylke)) + 
+  # because of group = country one line for each country
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 0)
+```
+
+```{r}
+#| messsage: false
 #| label: fig-utvikling_res_alle_fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for fylkene
 pm2_f %>%
-  unnest(resid) %>%
-  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  unnest(data) %>%
+  ggplot(mapping = aes(x = aar_d, y = res_m5)) +
   geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) + 
   geom_hline(yintercept = 0) + 
   scale_size_manual() +
@@ -710,19 +911,36 @@ pm2_f %>%
 ```
 
 ```{r}
+#| message: false
 #| label: fig-utvikling_res_6fylker
 #| fig-cap: Utviklingen i gjennomsnittlig residual for 6 fylker
 pm2_f %>%
   filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
-  unnest(resid) %>%
+  unnest(data) %>%
   group_by(fnr, aar_d) %>%
-  summarise(mean_res_m5 = mean(resid)) %>%
+  summarise(mean_res_m5 = mean(res_m5)) %>%
   ggplot(mapping = aes(x = aar_d, y = mean_res_m5, color = fnr
                       )) +
   geom_smooth(se = FALSE) + 
   geom_hline(yintercept = 0) + 
   scale_size_manual() +
   theme(legend.position = 'bottom')
+```
+
+```{r}
+#| label: fig-utvikling_mean_residual
+#| fig-cap: Plot av utviklingen i residualene for de valgte kommunene. Tykkere linjer for modell 4 og tynnere for modell 5.
+pm2_f %>% 
+  unnest(data) %>% 
+  # oppgaven oppdatert til 1001
+  filter(knr %in% c("1001", "1102", "1106", "1201")) %>%
+  ggplot(mapping = aes(x = aar_d, group = knr, colour = knr)) +
+  geom_line(aes(y = res_m5), lwd = .8) +
+  geom_line(aes(y = res_m4), lwd = 1.2) +
+  scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+  geom_hline(yintercept = 0, colour = "black") +
+  theme(legend.position = 'bottom') 
+  #geom_smooth(mapping = aes(x = aar_d, y = res_m5), se = FALSE) +
 ```
 
 ```{r}
